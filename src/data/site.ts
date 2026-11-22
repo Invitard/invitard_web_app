@@ -13,8 +13,8 @@ export const site = {
 	lang: 'es-PE',
 	description:
 		'Invitaciones digitales web para bodas, quinceaños, cumpleaños, bautizos, baby shower, primera comunión, mascotas, fiestas patronales, yunsas y eventos empresariales. Con confirmación por WhatsApp, cuenta regresiva, mapa, música y galería. Entrega en Perú y todo el mundo.',
-	whatsapp: '51950233653',
-	whatsappDisplay: '+51 950 233 653',
+	whatsapp: '51940077408',
+	whatsappDisplay: '+51 940 077 408',
 	// TODO: correo real.
 	email: 'hola@invitard.com',
 	city: 'Cusco',

@@ -11,7 +11,13 @@ interface Props {
 const { eventLabel = 'mi evento' } = Astro.props;
 ---
 
-<div class="plans">
+<div class="plans-wrap">
+<p class="plans-hint" aria-hidden="true">
+	Desliza para ver más planes
+	<Icon name="arrow" size="1.1rem" />
+</p>
+
+<div class="plans" role="region" aria-label="Planes y precios">
 	{
 		plans.map((p) => (
 			<article class:list={['plan', 'reveal', { 'plan--featured': p.featured }]} aria-labelledby={`plan-${p.id}`}>
@@ -57,6 +63,18 @@ const { eventLabel = 'mi evento' } = Astro.props;
 	}
 </div>
 
+<!-- Indicador del carrusel (solo celular) -->
+<div class="plans-dots">
+	{
+		plans.map((p, i) => (
+			<button type="button" aria-label={`Ver plan ${p.name}`} aria-current={i === 0 ? 'true' : 'false'}>
+				<span></span>
+			</button>
+		))
+	}
+</div>
+</div>
+
 <div class="extras">
 	<h3>Complementos</h3>
 	<ul role="list">
@@ -71,6 +89,40 @@ const { eventLabel = 'mi evento' } = Astro.props;
 		}
 	</ul>
 </div>
+
+<script>
+	// Carrusel de planes en celular: puntos indicadores, oculta la pista al
+	// desplazarse y hace el carrusel enfocable con teclado solo si desborda.
+	for (const wrap of document.querySelectorAll<HTMLElement>('.plans-wrap')) {
+		const list = wrap.querySelector<HTMLElement>('.plans')!;
+		const cards = [...list.querySelectorAll<HTMLElement>('.plan')];
+		const dots = [...wrap.querySelectorAll<HTMLButtonElement>('.plans-dots button')];
+		const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+		const setActive = (i: number) => dots.forEach((d, j) => d.setAttribute('aria-current', String(i === j)));
+
+		const io = new IntersectionObserver(
+			(entries) => {
+				for (const e of entries) if (e.isIntersecting) setActive(cards.indexOf(e.target as HTMLElement));
+			},
+			{ root: list, threshold: 0.6 },
+		);
+		cards.forEach((c) => io.observe(c));
+
+		dots.forEach((d, i) =>
+			d.addEventListener('click', () => {
+				list.scrollTo({ left: cards[i].offsetLeft - cards[0].offsetLeft, behavior: reduce.matches ? 'auto' : 'smooth' });
+			}),
+		);
+
+		list.addEventListener('scroll', () => wrap.classList.toggle('is-scrolled', list.scrollLeft > 24), { passive: true });
+
+		new ResizeObserver(() => {
+			if (list.scrollWidth > list.clientWidth + 1) list.tabIndex = 0;
+			else list.removeAttribute('tabindex');
+		}).observe(list);
+	}
+</script>
 
 <style>
 	.plans {
@@ -87,6 +139,109 @@ const { eventLabel = 'mi evento' } = Astro.props;
 
 		@media (width >= 64rem) {
 			gap: 1.5rem;
+		}
+	}
+
+	/* ── Celular: carrusel horizontal ── */
+	.plans-hint,
+	.plans-dots {
+		display: none;
+	}
+
+	@media (width < 46rem) {
+		.plans {
+			display: flex;
+			align-items: stretch;
+			gap: 1rem;
+			/* Sale del margen del contenedor para que la tarjeta siguiente asome por el borde */
+			margin-inline: calc(-1 * var(--gutter));
+			padding: 1.25rem var(--gutter) 0.75rem;
+			scroll-padding-inline: var(--gutter);
+			overflow-x: auto;
+			overscroll-behavior-x: contain;
+			scroll-snap-type: x mandatory;
+			scrollbar-width: none;
+
+			&::-webkit-scrollbar {
+				display: none;
+			}
+
+			&:focus-visible {
+				outline: 3px solid var(--sky-deep);
+				outline-offset: -3px;
+			}
+		}
+
+		.plan {
+			flex: 0 0 min(85%, 20rem);
+			scroll-snap-align: start;
+			/* La animación de aparición depende del scroll vertical: aquí no aplica */
+			animation: none;
+		}
+
+		.plans-hint {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 0.4rem;
+			margin: 0 0 0.25rem;
+			font-size: var(--step--1);
+			font-weight: 650;
+			color: var(--sky-deep);
+			transition: opacity 0.3s;
+
+			.is-scrolled & {
+				opacity: 0;
+			}
+
+			@media (prefers-reduced-motion: no-preference) {
+				& :global(svg) {
+					animation: nudge 1.4s ease-in-out infinite;
+				}
+			}
+		}
+
+		.plans-dots {
+			display: flex;
+			justify-content: center;
+			gap: 0.25rem;
+
+			& button {
+				display: grid;
+				place-items: center;
+				min-inline-size: 2rem;
+				min-block-size: 2rem;
+				padding: 0;
+				border: 0;
+				background: none;
+				cursor: pointer;
+			}
+
+			& span {
+				inline-size: 0.6rem;
+				block-size: 0.6rem;
+				border-radius: 999px;
+				background: oklch(0.8 0.02 240);
+				transition:
+					inline-size 0.25s,
+					background-color 0.25s;
+			}
+
+			& [aria-current='true'] span {
+				inline-size: 1.5rem;
+				background: var(--ink);
+			}
+
+			& button:focus-visible {
+				outline: 2px solid var(--sky-deep);
+				border-radius: 999px;
+			}
+		}
+	}
+
+	@keyframes nudge {
+		50% {
+			translate: 0.35rem 0;
 		}
 	}
 
