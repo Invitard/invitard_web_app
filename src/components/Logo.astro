@@ -1,0 +1,83 @@
+---
+/**
+ * Logotipo vectorial de Invitard (basado en public/invitard-logotype-vector.svg).
+ *
+ * El SVG original escribe el texto con fuentes de Windows (Segoe Script,
+ * Franklin Gothic, Century Gothic) que no existen en Android, iPhone ni Linux,
+ * así que ahí se vería con una tipografía genérica. Aquí las formas (gotas,
+ * celular y banda) son las del archivo original y el texto usa las fuentes
+ * que la web ya carga: Caveat (manuscrita) y Outfit.
+ *
+ * Si exportas el SVG con el texto convertido a trazos (Illustrator:
+ * Texto → Crear contornos), se puede usar tal cual y sería idéntico al original.
+ */
+interface Props {
+	/** Texto accesible. Vacío = decorativo (p. ej. dentro de un enlace que ya tiene aria-label). */
+	label?: string;
+	class?: string;
+}
+
+const { label = '', class: className } = Astro.props;
+const a11y = label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': 'true' as const };
+---
+
+<svg class:list={['logo', className]} viewBox="80 255 915 570" xmlns="http://www.w3.org/2000/svg" focusable="false" {...a11y}>
+	<!-- Celular -->
+	<path
+		fill="#010101"
+		d="M947.78,352,759.91,323.76A38.37,38.37,0,0,0,716.25,356L658.76,738.23A38.38,38.38,0,0,0,691,781.89l187.87,28.26a38.38,38.38,0,0,0,43.66-32.24L980,395.67A38.37,38.37,0,0,0,947.78,352Zm-153.95,4.29A7,7,0,0,1,799,355l102.19,15.37a7,7,0,1,1-2.07,13.81l-102.2-15.37a7,7,0,0,1-3.11-12.51Zm17.65,418.94a9.1,9.1,0,0,1-6.76,1.68l-33.07-5a9.09,9.09,0,1,1,2.7-18l33.07,5a9.09,9.09,0,0,1,4.06,16.3Zm99.27-43a19,19,0,0,1-21.6,15.95L699.42,719.61A19,19,0,0,1,683.47,698L728,401.7a19,19,0,0,1,21.59-15.95l189.74,28.54a19,19,0,0,1,16,21.6Z"
+	></path>
+	<rect class="logo-bg" x="699.89" y="345.3" width="241.61" height="439.42" rx="41.23" transform="translate(92.67 -115.26) rotate(8.51)"></rect>
+	<rect fill="#1d1d1b" x="799.43" y="365.31" width="93.3" height="15.73" rx="7.86" transform="matrix(0.99, 0.15, -0.15, 0.99, 64.56, -121.13)"></rect>
+	<rect fill="#1d1d1b" x="747.07" y="750.01" width="93.3" height="15.73" rx="7.86" transform="translate(120.92 -109.14) rotate(8.51)"></rect>
+	<!-- Fondo blanco detrás de "TARD" (tapa el borde del celular) -->
+	<rect class="logo-bg" x="495.7" y="435.7" width="289.39" height="260.27"></rect>
+
+	<!-- Gotas -->
+	<g fill="#bae1ee">
+		<path d="M271,462s-169.28-98.8-94.9-131.5C248.72,298.62,271,462,271,462Z"></path>
+		<path d="M291.52,431.68s-92.27-172.93-11.8-161.74C358.25,280.85,291.52,431.68,291.52,431.68Z"></path>
+		<path d="M318,464.14s-2.4-196,63.91-149C446.6,360.91,318,464.14,318,464.14Z"></path>
+	</g>
+
+	<!-- Texto -->
+	<g fill="#1d1d1b">
+		<text x="96" y="595" class="logo-script" textLength="360" lengthAdjust="spacingAndGlyphs">Invi</text>
+		<text x="474" y="593" class="logo-sans" textLength="410" lengthAdjust="spacingAndGlyphs">TARD</text>
+	</g>
+	<rect fill="#bae1ee" x="192.28" y="620.22" width="615.83" height="69.11" rx="34.56"></rect>
+	<text x="500" y="668" class="logo-sub" fill="#1d1d1b" text-anchor="middle">Invitaciones Digitales</text>
+</svg>
+
+<style>
+	.logo {
+		display: block;
+		block-size: auto;
+		overflow: visible;
+	}
+
+	/* Igual al fondo donde se coloca el logo (por defecto blanco) */
+	.logo-bg {
+		fill: var(--logo-bg, #fff);
+	}
+
+	.logo-script {
+		font-family: var(--font-script);
+		font-weight: 600;
+		font-size: 235px;
+	}
+
+	.logo-sans {
+		font-family: var(--font-sans);
+		font-weight: 800;
+		font-size: 190px;
+		letter-spacing: -0.02em;
+	}
+
+	.logo-sub {
+		font-family: var(--font-sans);
+		font-weight: 500;
+		font-size: 50px;
+		letter-spacing: 0.01em;
+	}
+</style>

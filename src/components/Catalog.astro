@@ -65,7 +65,7 @@ import { url, whatsappLink } from '../data/site';
 	.model {
 		display: grid;
 		gap: 1.25rem;
-		padding: 1.25rem;
+		padding: clamp(1rem, 0.8rem + 1vw, 1.25rem);
 		background: var(--paper);
 		border: 1px solid var(--line);
 		border-radius: var(--radius-l);
@@ -83,6 +83,11 @@ import { url, whatsappLink } from '../data/site';
 		position: relative;
 		margin: 0 auto;
 		inline-size: min(100%, 13rem);
+
+		@container (width < 34rem) {
+			inline-size: min(100%, 10.5rem);
+			border-width: 6px;
+		}
 		aspect-ratio: 9 / 18;
 		border: 7px solid var(--ink);
 		border-radius: 1.6rem;

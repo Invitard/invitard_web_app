@@ -1,6 +1,5 @@
 ---
-import { Image } from 'astro:assets';
-import logo from '../assets/brand/invitard-logo.png';
+import Logo from './Logo.astro';
 import Icon from './Icon.astro';
 import { groups, categoriesByGroup, categoryPath } from '../data/categories';
 import { site, url, whatsappLink } from '../data/site';
@@ -11,7 +10,7 @@ const year = new Date().getFullYear();
 <footer class="site-footer">
 	<div class="container footer-grid">
 		<div class="footer-brand">
-			<Image src={logo} alt="Invitard, invitaciones digitales" width={160} loading="lazy" />
+			<div class="footer-logo"><Logo label="Invitard, invitaciones digitales" /></div>
 			<p>
 				Diseñamos invitaciones digitales web para bodas, quinceaños, cumpleaños, sacramentos, fiestas tradicionales y eventos
 				institucionales. Desde {site.city} para todo el Perú y el mundo.
@@ -71,10 +70,12 @@ const year = new Date().getFullYear();
 		grid-column: 1 / -1;
 		max-inline-size: 34rem;
 
-		& img {
-			inline-size: 10rem;
-			border-radius: var(--radius-s);
+		& .footer-logo {
+			inline-size: 11rem;
+			padding: 0.6rem 0.9rem;
 			margin-block-end: 1rem;
+			border-radius: var(--radius-s);
+			background: white;
 		}
 
 		& p {

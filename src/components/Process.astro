@@ -19,8 +19,18 @@ import { steps } from '../data/content';
 <style>
 	.steps {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
-		gap: 1.25rem;
+		grid-template-columns: 1fr;
+		gap: 0.75rem;
+
+		/* 4 pasos: 2×2 en tablet, en fila en escritorio */
+		@media (width >= 36rem) {
+			grid-template-columns: repeat(2, 1fr);
+			gap: 1.25rem;
+		}
+
+		@media (width >= 64rem) {
+			grid-template-columns: repeat(4, 1fr);
+		}
 		padding: 0;
 		margin: 0;
 		list-style: none;
@@ -42,6 +52,24 @@ import { steps } from '../data/content';
 			margin: 0;
 			color: var(--ink-soft);
 			font-size: var(--step--1);
+		}
+	}
+
+	/* Celular: número a la izquierda */
+	@media (width < 36rem) {
+		.step {
+			display: grid;
+			grid-template-columns: 3.25rem 1fr;
+			padding: 1.1rem 1.1rem 1.1rem 0.9rem;
+
+			& .step-num {
+				grid-row: 1 / span 2;
+				font-size: var(--step-3);
+			}
+
+			& h3 {
+				margin-block: 0.1rem 0.25rem;
+			}
 		}
 	}
 

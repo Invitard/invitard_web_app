@@ -110,7 +110,7 @@ const jsonLd = [
 						src={c.image}
 						alt={c.imageAlt}
 						widths={[400, 640, 900]}
-						sizes="(width >= 56rem) 28rem, 92vw"
+						sizes="(width >= 64rem) 28rem, (width >= 46rem) 40vw, 92vw"
 						formats={['avif', 'webp']}
 						loading="eager"
 						fetchpriority="high"
@@ -228,11 +228,16 @@ const jsonLd = [
 
 	.cat-hero-grid {
 		display: grid;
-		gap: 2.5rem;
+		gap: 2rem;
 		align-items: center;
 
-		@media (width >= 56rem) {
+		@media (width >= 46rem) {
+			grid-template-columns: 1.15fr 0.85fr;
+		}
+
+		@media (width >= 64rem) {
 			grid-template-columns: 1.1fr 0.9fr;
+			gap: 2.5rem;
 		}
 	}
 
@@ -273,7 +278,7 @@ const jsonLd = [
 			box-shadow: var(--shadow-m);
 		}
 
-		@media (width < 56rem) {
+		@media (width < 46rem) {
 			& :global(img) {
 				aspect-ratio: 4 / 3;
 				border-radius: var(--radius-l);

@@ -93,7 +93,7 @@ const jsonLd = [
 						src={heroImage}
 						alt="Ejemplo de invitación digital de boda abierta en un celular, con la foto de una pareja de novios"
 						widths={[320, 480, 640]}
-						sizes="(width >= 56rem) 20rem, 70vw"
+						sizes="(width >= 64rem) 19rem, (width >= 46rem) 25vw, 55vw"
 						formats={['avif', 'webp']}
 						loading="eager"
 						fetchpriority="high"
@@ -218,11 +218,18 @@ const jsonLd = [
 
 	.hero-grid {
 		display: grid;
-		gap: 3rem;
+		gap: 1.5rem;
 		align-items: center;
 
-		@media (width >= 56rem) {
+		/* Tablet en vertical (768px) ya usa dos columnas: texto + celular */
+		@media (width >= 46rem) {
+			grid-template-columns: 1.2fr 0.8fr;
+			gap: 2rem;
+		}
+
+		@media (width >= 64rem) {
 			grid-template-columns: 1.15fr 0.85fr;
+			gap: 3rem;
 		}
 	}
 
@@ -246,6 +253,13 @@ const jsonLd = [
 		flex-wrap: wrap;
 		gap: 0.75rem;
 		margin-block: 1.75rem 1.5rem;
+
+		/* En celular los botones ocupan todo el ancho: más fáciles de tocar */
+		@media (width < 30rem) {
+			& .btn {
+				flex: 1 1 100%;
+			}
+		}
 	}
 
 	.hero-proof {
@@ -274,11 +288,15 @@ const jsonLd = [
 		position: relative;
 		justify-self: center;
 		padding: 2rem 1rem;
+
+		@media (width < 46rem) {
+			padding-block: 1.5rem 0.5rem;
+		}
 	}
 
 	.phone {
 		position: relative;
-		inline-size: min(70vw, 19rem);
+		inline-size: clamp(12rem, 55vw, 17rem);
 		aspect-ratio: 9 / 18.5;
 		border: 10px solid var(--ink);
 		border-radius: 2.6rem;
@@ -288,6 +306,15 @@ const jsonLd = [
 			0 40px 60px -25px oklch(0.2 0.02 270 / 0.45),
 			0 0 0 2px oklch(0.4 0.02 270);
 		rotate: 4deg;
+
+		@media (width >= 46rem) {
+			inline-size: clamp(13rem, 25vw, 19rem);
+			border-width: 8px;
+		}
+
+		@media (width >= 64rem) {
+			border-width: 10px;
+		}
 
 		& :global(img) {
 			inline-size: 100%;
@@ -399,13 +426,57 @@ const jsonLd = [
 		rotate: 3deg;
 	}
 
-	@media (width < 30rem) {
-		.float--rsvp {
-			inset-inline-start: -0.5rem;
+	/* Celular y tablet: el celular de muestra es más angosto, se compacta su contenido */
+	@media (width < 64rem) {
+		.phone-ui {
+			padding: 1rem 0.6rem 1.25rem;
+		}
+
+		.phone-script {
+			font-size: 1.25rem;
+		}
+
+		.phone-names {
+			font-size: 1.55rem;
+		}
+
+		.phone-date {
+			font-size: 0.68rem;
+			letter-spacing: 0.08em;
+		}
+
+		.phone-count {
+			gap: 0.2rem;
+			font-size: 0.55rem;
+
+			& b {
+				min-inline-size: 1.75rem;
+				font-size: 0.85rem;
+			}
+		}
+
+		.phone-btn {
+			font-size: 0.72rem;
 		}
 
 		.float--music {
-			inset-inline-end: -0.25rem;
+			inset-block-end: 2%;
+		}
+	}
+
+	/* Celular y tablet: etiquetas flotantes más pequeñas y dentro de la pantalla */
+	@media (width < 64rem) {
+		.float {
+			padding: 0.4rem 0.7rem;
+			font-size: 0.72rem;
+		}
+
+		.float--rsvp {
+			inset-inline-start: -1rem;
+		}
+
+		.float--music {
+			inset-inline-end: -0.5rem;
 		}
 	}
 
@@ -468,6 +539,37 @@ const jsonLd = [
 			&:hover {
 				background: var(--sky);
 				border-color: var(--sky-strong);
+			}
+		}
+
+		/* Celular y tablet: una sola fila deslizable en lugar de un bloque de 13 chips */
+		@media (width < 48rem) {
+			inline-size: 100%;
+			margin-block-start: 2rem;
+
+			& ul {
+				flex-wrap: nowrap;
+				justify-content: start;
+				overflow-x: auto;
+				overscroll-behavior-x: contain;
+				scroll-snap-type: x proximity;
+				scroll-padding-inline: var(--gutter);
+				padding: 0.25rem var(--gutter);
+				scrollbar-width: none;
+				mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent);
+
+				&::-webkit-scrollbar {
+					display: none;
+				}
+			}
+
+			& li {
+				flex: none;
+				scroll-snap-align: start;
+			}
+
+			& a {
+				white-space: nowrap;
 			}
 		}
 	}

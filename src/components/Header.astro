@@ -1,6 +1,5 @@
 ---
-import { Image } from 'astro:assets';
-import logo from '../assets/brand/invitard-logo.png';
+import Logo from './Logo.astro';
 import Icon from './Icon.astro';
 import { url, whatsappLink } from '../data/site';
 
@@ -19,7 +18,7 @@ const isCurrent = (match?: string) => (match ? current.startsWith(url(match)) : 
 <header class="site-header">
 	<div class="header-inner container">
 		<a class="site-logo" href={url('/')} aria-label="Invitard, ir al inicio">
-			<Image src={logo} alt="" width={132} height={Math.round((132 * logo.height) / logo.width)} loading="eager" />
+			<Logo />
 		</a>
 
 		<nav class="site-nav" aria-label="Principal">
@@ -73,11 +72,13 @@ const isCurrent = (match?: string) => (match ? current.startsWith(url(match)) : 
 		white-space: nowrap;
 	}
 
-	.site-logo img {
-		inline-size: 8.25rem;
-		block-size: auto;
-		/* Funde el fondo blanco del JPG con el header translúcido */
-		mix-blend-mode: multiply;
+	.site-logo {
+		display: block;
+
+		& :global(.logo) {
+			--logo-bg: var(--paper);
+			inline-size: clamp(7.5rem, 6.5rem + 3vw, 9rem);
+		}
 	}
 
 	.menu-button {

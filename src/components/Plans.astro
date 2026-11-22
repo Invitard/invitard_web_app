@@ -75,9 +75,19 @@ const { eventLabel = 'mi evento' } = Astro.props;
 <style>
 	.plans {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+		grid-template-columns: 1fr;
 		gap: 1.5rem;
 		align-items: start;
+
+		/* Tablet: los 3 planes lado a lado para compararlos de un vistazo */
+		@media (width >= 46rem) {
+			grid-template-columns: repeat(3, 1fr);
+			gap: 1rem;
+		}
+
+		@media (width >= 64rem) {
+			gap: 1.5rem;
+		}
 	}
 
 	.plan {
@@ -88,6 +98,14 @@ const { eventLabel = 'mi evento' } = Astro.props;
 		background: var(--paper);
 		border: 2px solid var(--line);
 		border-radius: var(--radius-l);
+
+		@media (width < 30rem) {
+			padding: 1.75rem 1.25rem;
+		}
+
+		@media (46rem <= width < 64rem) {
+			padding: 1.75rem 1.1rem;
+		}
 
 		& h3 {
 			font-size: var(--step-2);
