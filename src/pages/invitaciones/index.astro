@@ -1,0 +1,74 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import CategoryGroups from '../../components/CategoryGroups.astro';
+import Features from '../../components/Features.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { categories, categoryPath, groups, categoriesByGroup } from '../../data/categories';
+import { absoluteUrl, url } from '../../data/site';
+
+const title = 'Tipos de Invitaciones Digitales por Categoría';
+const description =
+	'Explora todas nuestras invitaciones digitales por categoría: celebraciones sociales, sacramentos, fiestas tradicionales y eventos institucionales o empresariales.';
+
+const jsonLd = [
+	{
+		'@context': 'https://schema.org',
+		'@type': 'BreadcrumbList',
+		itemListElement: [
+			{ '@type': 'ListItem', position: 1, name: 'Inicio', item: absoluteUrl('/') },
+			{ '@type': 'ListItem', position: 2, name: 'Invitaciones', item: absoluteUrl('/invitaciones/') },
+		],
+	},
+	{
+		'@context': 'https://schema.org',
+		'@type': 'CollectionPage',
+		name: title,
+		description,
+		url: absoluteUrl('/invitaciones/'),
+		mainEntity: {
+			'@type': 'ItemList',
+			itemListElement: groups.flatMap((g) => categoriesByGroup(g.id)).map((c, i) => ({
+				'@type': 'ListItem',
+				position: i + 1,
+				name: c.h1,
+				url: absoluteUrl(categoryPath(c)),
+			})),
+		},
+	},
+];
+---
+
+<Layout {title} {description} {jsonLd} keywords={categories.map((c) => c.keywords[0])}>
+	<section class="section page-head">
+		<div class="container">
+			<Breadcrumbs items={[{ name: 'Inicio', href: url('/') }, { name: 'Invitaciones' }]} />
+			<header class="section-head">
+				<span class="kicker">Encuentra tu celebración</span>
+				<h1>Invitaciones digitales por categoría</h1>
+				<p>
+					{categories.length} tipos de invitaciones web agrupadas en {groups.length} familias. Cada una tiene secciones pensadas para
+					ese tipo de evento: padrinos para un bautizo, itinerario para unos quince, programa de días para una fiesta patronal.
+				</p>
+			</header>
+			<CategoryGroups level="h2" />
+		</div>
+	</section>
+
+	<section class="section section--tint" aria-labelledby="incluyen-title">
+		<div class="container">
+			<header class="section-head section-head--center">
+				<h2 id="incluyen-title">Lo que incluyen todas nuestras invitaciones</h2>
+			</header>
+			<Features />
+		</div>
+	</section>
+
+	<CtaBand />
+</Layout>
+
+<style>
+	.page-head {
+		padding-block-start: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+	}
+</style>

@@ -1,0 +1,144 @@
+---
+import { Picture } from 'astro:assets';
+import Icon from './Icon.astro';
+import { catalog } from '../data/content';
+import { categories, categoryPath } from '../data/categories';
+import { url, whatsappLink } from '../data/site';
+---
+
+<ul class="catalog" role="list">
+	{
+		catalog.map((item) => {
+			const cat = categories.find((c) => c.slug === item.categorySlug)!;
+			return (
+				<li class="model reveal">
+					<figure class="model-phone">
+						<Picture
+							src={item.image}
+							alt={item.imageAlt}
+							widths={[280, 420, 560]}
+							sizes="(width >= 64rem) 15rem, (width >= 40rem) 40vw, 80vw"
+							formats={['avif', 'webp']}
+							loading="lazy"
+							decoding="async"
+						/>
+						<figcaption>
+							<span class="model-script">{cat.name}</span>
+							<span class="model-name">{item.name}</span>
+						</figcaption>
+					</figure>
+					<div class="model-body">
+						<h3>Modelo «{item.name}»</h3>
+						<p>{item.text}</p>
+						<ul class="chips" aria-label="Incluye">
+							{item.features.map((f) => (
+								<li>{f}</li>
+							))}
+						</ul>
+						<div class="model-actions">
+							<a class="btn btn--sky" href={whatsappLink(`¡Hola Invitard! Me gustó el modelo «${item.name}». ¿Me envían una demo?`)} rel="noopener" target="_blank">
+								<Icon name="whatsapp" />
+								Pedir demo
+							</a>
+							<a class="model-link" href={url(categoryPath(cat))}>
+								Más de {cat.name.toLowerCase()}
+							</a>
+						</div>
+					</div>
+				</li>
+			);
+		})
+	}
+</ul>
+
+<style>
+	.catalog {
+		container-type: inline-size;
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr));
+		gap: 1.5rem;
+		padding: 0;
+		margin: 0;
+		list-style: none;
+	}
+
+	.model {
+		display: grid;
+		gap: 1.25rem;
+		padding: 1.25rem;
+		background: var(--paper);
+		border: 1px solid var(--line);
+		border-radius: var(--radius-l);
+	}
+
+	@container (width >= 34rem) {
+		.model {
+			grid-template-columns: 11rem 1fr;
+			align-items: center;
+		}
+	}
+
+	/* Marco de celular con la invitación de muestra */
+	.model-phone {
+		position: relative;
+		margin: 0 auto;
+		inline-size: min(100%, 13rem);
+		aspect-ratio: 9 / 18;
+		border: 7px solid var(--ink);
+		border-radius: 1.6rem;
+		overflow: clip;
+		background: var(--ink);
+		box-shadow: var(--shadow-m);
+
+		& :global(img) {
+			inline-size: 100%;
+			block-size: 100%;
+			object-fit: cover;
+		}
+
+		& figcaption {
+			position: absolute;
+			inset: auto 0 0;
+			display: grid;
+			padding: 2.5rem 0.75rem 1rem;
+			text-align: center;
+			color: white;
+			background: linear-gradient(transparent, oklch(0.15 0.02 270 / 0.85));
+		}
+	}
+
+	.model-script {
+		font-family: var(--font-script);
+		font-size: 1.25rem;
+		line-height: 1;
+	}
+
+	.model-name {
+		font-weight: 750;
+		font-size: 1.05rem;
+		letter-spacing: 0.02em;
+	}
+
+	.model-body {
+		& h3 {
+			margin-block-end: 0.4rem;
+		}
+
+		& p {
+			color: var(--ink-soft);
+			font-size: var(--step--1);
+		}
+	}
+
+	.model-actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem 1.25rem;
+		margin-block-start: 1.25rem;
+	}
+
+	.model-link {
+		font-weight: 600;
+	}
+</style>

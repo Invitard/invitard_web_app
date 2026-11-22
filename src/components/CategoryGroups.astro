@@ -1,0 +1,70 @@
+---
+import CategoryCard from './CategoryCard.astro';
+import { groups, categoriesByGroup } from '../data/categories';
+
+interface Props {
+	/** Nivel del encabezado de cada grupo. */
+	level?: 'h2' | 'h3';
+}
+
+const { level = 'h3' } = Astro.props;
+const GroupHeading = level;
+const cardLevel = level === 'h2' ? 'h3' : 'h4';
+---
+
+<div class="groups">
+	{
+		groups.map((g) => (
+			<section class="group" aria-labelledby={`grupo-${g.id}-titulo`} style={`--hue: ${g.hue}`} id={`grupo-${g.id}`}>
+				<header class="group-head">
+					<span class="kicker">{g.kicker}</span>
+					<GroupHeading id={`grupo-${g.id}-titulo`} class="group-title">
+						{g.name}
+					</GroupHeading>
+					<p>{g.description}</p>
+				</header>
+				<div class="group-grid">
+					{categoriesByGroup(g.id).map((c) => (
+						<CategoryCard category={c} headingLevel={cardLevel} />
+					))}
+				</div>
+			</section>
+		))
+	}
+</div>
+
+<style>
+	.groups {
+		display: grid;
+		gap: clamp(3.5rem, 2.5rem + 4vw, 6rem);
+	}
+
+	.group-head {
+		display: grid;
+		gap: 0.25rem;
+		max-inline-size: 44rem;
+		margin-block-end: 1.75rem;
+		padding-inline-start: 1.25rem;
+		border-inline-start: 6px solid oklch(0.82 0.1 var(--hue));
+
+		& .kicker {
+			color: oklch(0.45 0.12 var(--hue));
+		}
+
+		& p {
+			color: var(--ink-soft);
+			margin: 0;
+		}
+	}
+
+	.group-title {
+		font-size: var(--step-2);
+		margin: 0;
+	}
+
+	.group-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+		gap: clamp(1rem, 0.75rem + 1vw, 1.5rem);
+	}
+</style>

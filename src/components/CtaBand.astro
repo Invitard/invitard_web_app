@@ -1,0 +1,77 @@
+---
+import Icon from './Icon.astro';
+import { whatsappLink } from '../data/site';
+
+interface Props {
+	title?: string;
+	text?: string;
+	message?: string;
+}
+
+const {
+	title = '¿Listo para sorprender a tus invitados?',
+	text = 'Cuéntanos tu idea por WhatsApp y te enviamos una propuesta sin compromiso. La cotización es gratis.',
+	message = '¡Hola Invitard! Quiero cotizar una invitación digital ✨',
+} = Astro.props;
+---
+
+<section class="cta" aria-labelledby="cta-title">
+	<div class="container cta-inner">
+		<span class="cta-drops" aria-hidden="true"><i></i><i></i><i></i></span>
+		<h2 id="cta-title">{title}</h2>
+		<p>{text}</p>
+		<a class="btn btn--whatsapp" href={whatsappLink(message)} rel="noopener" target="_blank">
+			<Icon name="whatsapp" />
+			Cotizar gratis por WhatsApp
+		</a>
+	</div>
+</section>
+
+<style>
+	.cta {
+		padding-block: var(--section-space);
+		background:
+			radial-gradient(circle at 10% 20%, oklch(0.86 0.15 85 / 0.5) 0 4rem, transparent 4rem),
+			radial-gradient(circle at 92% 80%, oklch(0.74 0.15 38 / 0.35) 0 6rem, transparent 6rem),
+			var(--sky);
+		text-align: center;
+	}
+
+	.cta-inner {
+		display: grid;
+		justify-items: center;
+		max-inline-size: 44rem;
+
+		& p {
+			font-size: var(--step-1);
+			color: var(--ink);
+		}
+	}
+
+	/* Las tres gotitas del logotipo */
+	.cta-drops {
+		display: flex;
+		align-items: end;
+		gap: 0.35rem;
+		margin-block-end: 1rem;
+
+		& i {
+			inline-size: 1.1rem;
+			block-size: 1.8rem;
+			background: var(--paper);
+			border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+		}
+
+		& i:nth-child(1) {
+			rotate: -28deg;
+		}
+
+		& i:nth-child(2) {
+			block-size: 2.3rem;
+		}
+
+		& i:nth-child(3) {
+			rotate: 28deg;
+		}
+	}
+</style>

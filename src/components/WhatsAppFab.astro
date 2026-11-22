@@ -1,0 +1,47 @@
+---
+import Icon from './Icon.astro';
+import { whatsappLink } from '../data/site';
+
+interface Props {
+	message?: string;
+}
+
+const { message = '¡Hola Invitard! Quiero cotizar una invitación digital ✨' } = Astro.props;
+---
+
+<a class="wa-fab" href={whatsappLink(message)} rel="noopener" target="_blank">
+	<Icon name="whatsapp" size="1.9rem" />
+	<span class="visually-hidden">Escríbenos por WhatsApp</span>
+</a>
+
+<style>
+	.wa-fab {
+		position: fixed;
+		inset-inline-end: max(1rem, env(safe-area-inset-right));
+		inset-block-end: max(1rem, env(safe-area-inset-bottom));
+		z-index: 40;
+		display: grid;
+		place-items: center;
+		inline-size: 3.75rem;
+		block-size: 3.75rem;
+		border-radius: 50%;
+		background: var(--whatsapp);
+		color: var(--ink);
+		box-shadow: var(--shadow-m);
+		transition: box-shadow 0.2s;
+
+		&:hover {
+			box-shadow:
+				var(--shadow-m),
+				0 0 0 6px oklch(from var(--whatsapp) l c h / 0.25);
+		}
+
+		@media (prefers-reduced-motion: no-preference) {
+			transition-property: box-shadow, scale;
+
+			&:hover {
+				scale: 1.06;
+			}
+		}
+	}
+</style>

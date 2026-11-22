@@ -1,0 +1,267 @@
+---
+import { Image } from 'astro:assets';
+import logo from '../assets/brand/invitard-logo.png';
+import Icon from './Icon.astro';
+import { url, whatsappLink } from '../data/site';
+
+const links = [
+	{ href: url('/invitaciones/'), label: 'Categorías', match: '/invitaciones/' },
+	{ href: url('/#catalogo'), label: 'Catálogo' },
+	{ href: url('/#planes'), label: 'Planes' },
+	{ href: url('/#proceso'), label: 'Cómo funciona' },
+	{ href: url('/#preguntas'), label: 'Preguntas' },
+];
+
+const current = Astro.url.pathname;
+const isCurrent = (match?: string) => (match ? current.startsWith(url(match)) : false);
+---
+
+<header class="site-header">
+	<div class="header-inner container">
+		<a class="site-logo" href={url('/')} aria-label="Invitard, ir al inicio">
+			<Image src={logo} alt="" width={132} height={Math.round((132 * logo.height) / logo.width)} loading="eager" />
+		</a>
+
+		<nav class="site-nav" aria-label="Principal">
+			<button class="menu-button" type="button" popovertarget="site-menu" popovertargetaction="toggle" aria-controls="site-menu">
+				<Icon name="menu" size="1.35rem" />
+				<span>Menú</span>
+			</button>
+
+			<ul id="site-menu" class="site-menu" popover="auto">
+				{
+					links.map((l) => (
+						<li>
+							<a href={l.href} aria-current={isCurrent(l.match) ? 'page' : undefined}>
+								{l.label}
+							</a>
+						</li>
+					))
+				}
+				<li class="menu-cta">
+					<a class="btn btn--whatsapp" href={whatsappLink('¡Hola Invitard! Quiero cotizar una invitación digital ✨')} rel="noopener" target="_blank">
+						<Icon name="whatsapp" />
+						Cotizar
+					</a>
+				</li>
+			</ul>
+		</nav>
+	</div>
+</header>
+
+<style>
+	.site-header {
+		position: sticky;
+		inset-block-start: 0;
+		z-index: 50;
+		background: oklch(0.99 0.006 220 / 0.86);
+		backdrop-filter: blur(14px) saturate(1.4);
+		border-block-end: 1px solid var(--line);
+	}
+
+	.header-inner {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		min-block-size: 4.5rem;
+	}
+
+	/* Mantiene medible el ancho natural de la fila */
+	.header-inner > * {
+		flex-shrink: 0;
+		white-space: nowrap;
+	}
+
+	.site-logo img {
+		inline-size: 8.25rem;
+		block-size: auto;
+		/* Funde el fondo blanco del JPG con el header translúcido */
+		mix-blend-mode: multiply;
+	}
+
+	.menu-button {
+		anchor-name: --menu-button;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		min-block-size: 2.75rem;
+		padding-inline: 1rem;
+		border: 2px solid var(--ink);
+		border-radius: 999px;
+		background: transparent;
+		color: var(--ink);
+		font: inherit;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	/* ── Diseño estrecho: menú en popover ── */
+	.site-menu {
+		position: fixed;
+		inset: auto;
+		/* Sin anchor positioning se queda este valor */
+		inset-block-start: 4.75rem;
+		inset-block-start: anchor(--menu-button bottom);
+		inset-inline-end: 1rem;
+		inline-size: min(80dvw, 22rem);
+		max-inline-size: calc(100dvw - 2rem);
+		block-size: fit-content;
+		max-block-size: calc(100dvh - 6rem);
+		margin: 0.5rem 0 0;
+		padding: 0.75rem;
+		overflow: auto;
+		list-style: none;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-m);
+		background: var(--paper);
+		box-shadow: var(--shadow-m);
+
+		& a:not(.btn) {
+			display: block;
+			padding: 0.75rem 1rem;
+			border-radius: var(--radius-s);
+			color: var(--ink);
+			text-decoration: none;
+			font-weight: 550;
+
+			&:hover {
+				background: var(--paper-2);
+			}
+		}
+
+		& a[aria-current='page'] {
+			text-decoration: underline;
+			text-decoration-thickness: 3px;
+			text-decoration-color: var(--sky-strong);
+		}
+
+		& .menu-cta {
+			margin-block-start: 0.5rem;
+
+			& .btn {
+				inline-size: 100%;
+			}
+		}
+
+		@media (prefers-reduced-motion: no-preference) {
+			transition:
+				opacity 0.2s ease-out,
+				translate 0.2s ease-out,
+				display 0.2s,
+				overlay 0.2s;
+			transition-behavior: allow-discrete;
+		}
+	}
+
+	.site-menu:is(:popover-open, .\:popover-open) {
+		opacity: 1;
+		translate: 0 0;
+
+		@starting-style {
+			opacity: 0;
+			translate: 0 -0.5rem;
+		}
+	}
+
+	.site-menu:not(:is(:popover-open, .\:popover-open)) {
+		opacity: 0;
+		translate: 0 -0.5rem;
+	}
+
+	/* ── Diseño ancho: navegación en línea ── */
+	.site-header:global(.is-wide) {
+		& .menu-button {
+			display: none;
+		}
+
+		& .site-menu {
+			position: static;
+			display: flex;
+			align-items: center;
+			gap: 0.15rem;
+			inline-size: auto;
+			max-inline-size: none;
+			block-size: auto;
+			max-block-size: none;
+			overflow: visible;
+			margin: 0;
+			padding: 0;
+			border: 0;
+			background: transparent;
+			box-shadow: none;
+			opacity: 1;
+			translate: none;
+
+			& a:not(.btn) {
+				padding: 0.5rem 0.8rem;
+			}
+
+			& .menu-cta {
+				margin: 0 0 0 0.5rem;
+			}
+		}
+
+		& .site-menu::backdrop {
+			display: none;
+		}
+	}
+
+	.site-header:global(.is-measuring) * {
+		transition: none !important;
+	}
+
+	@media (forced-colors: active) {
+		.site-menu a[aria-current='page'] {
+			text-decoration-color: LinkText;
+		}
+	}
+</style>
+
+<script>
+	// Feature detect: polyfill de popover solo si falta soporte nativo.
+	if (!Object.hasOwn(HTMLElement.prototype, 'popover')) {
+		// @ts-ignore: carga opcional desde CDN
+		import(/* @vite-ignore */ 'https://unpkg.com/@oddbird/popover-polyfill@0.5.2/dist/popover.min.js');
+	}
+
+	const header = document.querySelector<HTMLElement>('.site-header');
+	const inner = header?.querySelector<HTMLElement>('.header-inner');
+	const menu = header?.querySelector<HTMLElement>('#site-menu');
+
+	if (header && inner && menu) {
+		let lastWidth = 0;
+
+		const sync = () => {
+			const width = header.clientWidth;
+			const wide = header.classList.contains('is-wide');
+			// En modo colapsado solo se vuelve a medir cuando el header crece.
+			if (!wide && width <= lastWidth) {
+				lastWidth = width;
+				return;
+			}
+			lastWidth = width;
+
+			const wasOpen = menu.matches(':popover-open, .\\:popover-open');
+			header.classList.add('is-measuring', 'is-wide');
+			menu.removeAttribute('popover');
+			const fits = inner.scrollWidth <= inner.clientWidth;
+
+			if (!fits) {
+				header.classList.remove('is-wide');
+				menu.setAttribute('popover', 'auto');
+				if (wasOpen) menu.showPopover();
+			}
+			requestAnimationFrame(() => header.classList.remove('is-measuring'));
+		};
+
+		const ro = new ResizeObserver(sync);
+		ro.observe(header);
+		ro.observe(menu);
+
+		// Cierra el menú al elegir un ancla dentro de la misma página.
+		menu.addEventListener('click', (e) => {
+			if ((e.target as HTMLElement).closest('a') && menu.hasAttribute('popover')) menu.hidePopover();
+		});
+	}
+</script>

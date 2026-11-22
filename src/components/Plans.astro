@@ -1,0 +1,226 @@
+---
+import Icon from './Icon.astro';
+import { plans, extras } from '../data/content';
+import { whatsappLink } from '../data/site';
+
+interface Props {
+	/** Texto del evento para personalizar el mensaje de WhatsApp. */
+	eventLabel?: string;
+}
+
+const { eventLabel = 'mi evento' } = Astro.props;
+---
+
+<div class="plans">
+	{
+		plans.map((p) => (
+			<article class:list={['plan', 'reveal', { 'plan--featured': p.featured }]} aria-labelledby={`plan-${p.id}`}>
+				{p.featured && <p class="plan-badge">Más elegido</p>}
+				<h3 id={`plan-${p.id}`}>{p.name}</h3>
+				<p class="plan-tagline">{p.tagline}</p>
+				<p class="plan-price">
+					<span class="plan-currency">S/</span>
+					<span class="plan-amount">{p.price}</span>
+					<span class="visually-hidden">soles</span>
+				</p>
+				<ul class="plan-list" role="list">
+					{p.includes.map((item) => (
+						<li>
+							<Icon name="check" size="1.15rem" />
+							{item}
+						</li>
+					))}
+					{p.notIncluded?.map((item) => (
+						<li class="plan-no">
+							<Icon name="minus" size="1.15rem" />
+							<span>
+								<span class="visually-hidden">No incluye: </span>
+								{item}
+							</span>
+						</li>
+					))}
+				</ul>
+				<p class="plan-meta">
+					{p.revisions} rondas de cambios · Entrega en {p.delivery}
+				</p>
+				<a
+					class:list={['btn', p.featured ? 'btn--whatsapp' : 'btn--ghost']}
+					href={whatsappLink(`¡Hola Invitard! Me interesa el plan ${p.name} (S/ ${p.price}) para ${eventLabel}.`)}
+					rel="noopener"
+					target="_blank"
+				>
+					<Icon name="whatsapp" />
+					Quiero el plan {p.name}
+				</a>
+			</article>
+		))
+	}
+</div>
+
+<div class="extras">
+	<h3>Complementos</h3>
+	<ul role="list">
+		{
+			extras.map((e) => (
+				<li>
+					<strong>{e.name}</strong>
+					<span>{e.text}</span>
+					<span class="extra-price">S/ {e.price}</span>
+				</li>
+			))
+		}
+	</ul>
+</div>
+
+<style>
+	.plans {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+		gap: 1.5rem;
+		align-items: start;
+	}
+
+	.plan {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		padding: 2rem 1.75rem;
+		background: var(--paper);
+		border: 2px solid var(--line);
+		border-radius: var(--radius-l);
+
+		& h3 {
+			font-size: var(--step-2);
+			margin: 0;
+		}
+
+		& .btn {
+			margin-block-start: 1.25rem;
+		}
+	}
+
+	.plan--featured {
+		border-color: var(--ink);
+		background:
+			radial-gradient(circle at 100% 0, var(--sky) 0 7rem, transparent 7rem),
+			var(--paper);
+		box-shadow: var(--shadow-m);
+
+		@media (width >= 64rem) {
+			margin-block-start: -1rem;
+		}
+	}
+
+	.plan-badge {
+		position: absolute;
+		inset-block-start: -0.9rem;
+		inset-inline-start: 1.5rem;
+		margin: 0;
+		padding: 0.2rem 0.9rem;
+		border-radius: 999px;
+		background: var(--ink);
+		color: white;
+		font-size: var(--step--1);
+		font-weight: 650;
+	}
+
+	.plan-tagline {
+		font-family: var(--font-script);
+		font-size: var(--step-1);
+		color: var(--sky-deep);
+		margin-block: 0.15rem 0.5rem;
+	}
+
+	.plan-price {
+		display: flex;
+		align-items: baseline;
+		gap: 0.25rem;
+		margin-block-end: 1.25rem;
+	}
+
+	.plan-currency {
+		font-size: var(--step-1);
+		font-weight: 600;
+	}
+
+	.plan-amount {
+		font-size: var(--step-4);
+		font-weight: 800;
+		line-height: 1;
+		letter-spacing: -0.04em;
+	}
+
+	.plan-list {
+		display: grid;
+		gap: 0.55rem;
+		padding: 0;
+		margin: 0 0 1rem;
+		list-style: none;
+		font-size: var(--step--1);
+
+		& li {
+			display: grid;
+			grid-template-columns: auto 1fr;
+			gap: 0.55rem;
+			align-items: start;
+		}
+
+		& svg {
+			margin-block-start: 0.2em;
+			color: var(--sky-deep);
+		}
+	}
+
+	.plan-no {
+		color: var(--ink-soft);
+
+		& svg {
+			color: var(--ink-soft) !important;
+		}
+	}
+
+	.plan-meta {
+		margin: auto 0 0;
+		font-size: var(--step--1);
+		color: var(--ink-soft);
+	}
+
+	.extras {
+		margin-block-start: 2.5rem;
+		padding: 1.5rem 1.75rem;
+		border: 2px dashed var(--sky-strong);
+		border-radius: var(--radius-m);
+
+		& h3 {
+			margin-block-end: 1rem;
+		}
+
+		& ul {
+			display: grid;
+			gap: 0.9rem;
+			padding: 0;
+			margin: 0;
+			list-style: none;
+		}
+
+		& li {
+			display: grid;
+			grid-template-columns: 1fr auto;
+			gap: 0 1rem;
+
+			& span:not(.extra-price) {
+				grid-column: 1;
+				color: var(--ink-soft);
+				font-size: var(--step--1);
+			}
+		}
+	}
+
+	.extra-price {
+		grid-column: 2;
+		grid-row: 1 / span 2;
+		align-self: center;
+		font-weight: 750;
+		font-size: var(--step-1);
+	}
+</style>

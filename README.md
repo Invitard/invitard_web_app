@@ -1,46 +1,55 @@
-# Astro Starter Kit: Basics
+# Invitard · Web de invitaciones digitales
+
+Sitio estático (Astro 7) de **Invitard**: invitaciones digitales web para bodas, quinceaños,
+cumpleaños, baby shower, mascotas, sacramentos, fiestas patronales, yunsas y eventos institucionales.
+
+## Desarrollo
 
 ```sh
-npm create astro@latest -- --template basics
+npm install
+npx astro dev --background   # servidor de desarrollo
+npm run build                # genera dist/
+npm run preview
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Dónde editar el contenido
 
-## 🚀 Project Structure
+| Archivo | Qué contiene |
+| --- | --- |
+| `src/data/site-url.mjs` | Dominio y base path del despliegue |
+| `src/data/site.ts` | WhatsApp, correo, ciudad, redes sociales (**revisar los TODO**) |
+| `src/data/categories.ts` | Grupos y categorías: textos SEO, beneficios, estilos y FAQ de cada página |
+| `src/data/content.ts` | Planes y precios, complementos, catálogo de modelos, proceso y FAQ generales |
 
-Inside of your Astro project, you'll see the following folders and files:
+Cada categoría genera su página en `/invitaciones/<slug>/` automáticamente.
 
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
-```
+## SEO incluido
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+- Título, descripción, canonical, Open Graph y Twitter Card por página (imagen OG propia por categoría).
+- JSON-LD: `ProfessionalService`, `WebSite`, `Service` con ofertas, `OfferCatalog`, `FAQPage`,
+  `BreadcrumbList`, `CollectionPage`.
+- `sitemap-index.xml`, `robots.txt`, `llms.txt` y `manifest.webmanifest`.
+- Imágenes AVIF/WebP responsivas; la imagen principal se carga con `fetchpriority="high"`.
 
-## 🧞 Commands
+## Despliegue en GitHub Pages
 
-All commands are run from the root of the project, from a terminal:
+El workflow `.github/workflows/deploy.yml` compila y publica en cada `push` a `main`.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+Configuración única en GitHub (repo `Invitard/invitard_web_app`):
+**Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
-## 👀 Want to learn more?
+URL resultante: https://invitard.github.io/invitard_web_app/
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+### Dominio propio (recomendado para SEO)
+
+1. En `src/data/site-url.mjs`: `SITE_URL = 'https://tudominio.com'` y `BASE_PATH = '/'`.
+2. Crea `public/CNAME` con el dominio (una sola línea).
+3. Configura el DNS y el dominio en *Settings → Pages*.
+
+Con dominio propio, `robots.txt` queda en la raíz del dominio. En una URL de proyecto
+(`*.github.io/<repo>/`) los buscadores no lo leen, así que envía el sitemap desde Google Search Console.
+
+## Créditos de fotografía
+
+Fotos de stock de [Unsplash](https://unsplash.com/license) (licencia libre), en `src/assets/stock/`.
+Los modelos del catálogo se basan en trabajos de Invitard, sin datos personales de clientes.

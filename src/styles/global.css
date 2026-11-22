@@ -1,0 +1,309 @@
+@import '@fontsource-variable/outfit';
+@import '@fontsource/caveat/600.css';
+
+/* ───────────── Tokens ───────────── */
+:root {
+	color-scheme: light;
+
+	--ink: oklch(0.2 0.02 270);
+	--ink-soft: oklch(0.4 0.02 270);
+	--paper: oklch(0.99 0.006 220);
+	--paper-2: oklch(0.965 0.018 220);
+	--sky: oklch(0.89 0.05 220);
+	--sky-strong: oklch(0.8 0.08 222);
+	--sky-deep: oklch(0.45 0.11 235);
+	--coral: oklch(0.74 0.15 38);
+	--sun: oklch(0.86 0.15 85);
+	--lilac: oklch(0.8 0.08 300);
+	--whatsapp: oklch(0.78 0.18 150);
+	--line: oklch(0.88 0.015 250);
+
+	--font-sans: 'Outfit Variable', 'Outfit', system-ui, sans-serif;
+	--font-script: 'Caveat', 'Segoe Script', cursive;
+
+	--radius-s: 0.6rem;
+	--radius-m: 1.1rem;
+	--radius-l: 2rem;
+	--shadow-s: 0 1px 2px oklch(0.2 0.02 270 / 0.06), 0 2px 8px oklch(0.2 0.02 270 / 0.06);
+	--shadow-m: 0 2px 6px oklch(0.2 0.02 270 / 0.06), 0 18px 40px -12px oklch(0.2 0.02 270 / 0.18);
+
+	--gutter: clamp(1rem, 0.6rem + 2vw, 2rem);
+	--section-space: clamp(4rem, 2.5rem + 6vw, 8rem);
+	--content: 72rem;
+
+	--step--1: clamp(0.875rem, 0.85rem + 0.1vw, 0.95rem);
+	--step-0: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+	--step-1: clamp(1.2rem, 1.1rem + 0.5vw, 1.45rem);
+	--step-2: clamp(1.5rem, 1.25rem + 1.1vw, 2.1rem);
+	--step-3: clamp(1.9rem, 1.4rem + 2.2vw, 3.2rem);
+	--step-4: clamp(2.4rem, 1.6rem + 3.6vw, 4.6rem);
+}
+
+/* ───────────── Base ───────────── */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	-webkit-text-size-adjust: 100%;
+	text-size-adjust: 100%;
+	scroll-padding-block-start: 5.5rem;
+
+	@media (prefers-reduced-motion: no-preference) {
+		scroll-behavior: smooth;
+	}
+}
+
+body {
+	margin: 0;
+	font-family: var(--font-sans);
+	font-size: var(--step-0);
+	line-height: 1.6;
+	color: var(--ink);
+	background: var(--paper);
+	text-align: start;
+	overflow-wrap: break-word;
+	font-optical-sizing: auto;
+}
+
+/* <picture> no genera caja: así el <img> se dimensiona respecto a su contenedor */
+picture {
+	display: contents;
+}
+
+img,
+svg,
+video {
+	display: block;
+	max-inline-size: 100%;
+	block-size: auto;
+}
+
+h1,
+h2,
+h3,
+h4 {
+	line-height: 1.12;
+	margin-block: 0 0.5em;
+	text-wrap: balance;
+	letter-spacing: -0.02em;
+}
+
+h1 {
+	font-size: var(--step-4);
+	font-weight: 800;
+}
+
+h2 {
+	font-size: var(--step-3);
+	font-weight: 750;
+}
+
+h3 {
+	font-size: var(--step-1);
+	font-weight: 650;
+}
+
+p {
+	margin-block: 0 1em;
+	text-wrap: pretty;
+}
+
+a {
+	color: var(--sky-deep);
+	text-underline-offset: 0.2em;
+}
+
+:focus-visible {
+	outline: 3px solid var(--sky-deep);
+	outline-offset: 3px;
+	border-radius: 4px;
+}
+
+::selection {
+	background: var(--sky);
+	color: var(--ink);
+}
+
+/* ───────────── Utilidades ───────────── */
+.container {
+	inline-size: min(100% - 2 * var(--gutter), var(--content));
+	margin-inline: auto;
+}
+
+.section {
+	padding-block: var(--section-space);
+}
+
+.section--tint {
+	background: var(--paper-2);
+}
+
+.section-head {
+	max-inline-size: 46rem;
+	margin-block-end: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+
+	& p {
+		color: var(--ink-soft);
+		font-size: var(--step-1);
+		line-height: 1.5;
+	}
+}
+
+.section-head--center {
+	margin-inline: auto;
+	text-align: center;
+}
+
+.kicker {
+	font-family: var(--font-script);
+	font-size: var(--step-2);
+	font-weight: 600;
+	line-height: 1;
+	color: var(--sky-deep);
+	display: block;
+	margin-block-end: 0.35rem;
+	rotate: -2deg;
+	inline-size: fit-content;
+}
+
+.section-head--center .kicker {
+	margin-inline: auto;
+}
+
+.visually-hidden {
+	position: absolute !important;
+	inline-size: 1px;
+	block-size: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+.skip-link {
+	position: absolute;
+	inset-inline-start: 1rem;
+	inset-block-start: -10rem;
+	z-index: 100;
+	padding: 0.75rem 1rem;
+	background: var(--ink);
+	color: white;
+	border-radius: var(--radius-s);
+
+	&:focus {
+		inset-block-start: 1rem;
+	}
+}
+
+/* ───────────── Botones ───────────── */
+.btn {
+	--btn-bg: var(--ink);
+	--btn-fg: white;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.55em;
+	min-block-size: 3rem;
+	padding: 0.7em 1.4em;
+	border-radius: 999px;
+	border: 2px solid var(--btn-bg);
+	background: var(--btn-bg);
+	color: var(--btn-fg);
+	font: inherit;
+	font-weight: 650;
+	line-height: 1.2;
+	text-decoration: none;
+	cursor: pointer;
+	transition:
+		background-color 0.2s,
+		color 0.2s,
+		border-color 0.2s,
+		box-shadow 0.2s;
+
+	& svg {
+		inline-size: 1.25em;
+		block-size: 1.25em;
+		flex-shrink: 0;
+	}
+
+	&:hover {
+		box-shadow: 0 0 0 4px oklch(from var(--btn-bg) l c h / 0.2);
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		transition-property: background-color, color, border-color, box-shadow, translate;
+
+		&:hover {
+			translate: 0 -2px;
+		}
+	}
+}
+
+.btn--whatsapp {
+	--btn-bg: var(--whatsapp);
+	--btn-fg: var(--ink);
+}
+
+.btn--ghost {
+	background: transparent;
+	color: var(--ink);
+}
+
+.btn--sky {
+	--btn-bg: var(--sky);
+	--btn-fg: var(--ink);
+}
+
+/* ───────────── Chips ───────────── */
+.chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+	padding: 0;
+	margin: 0;
+	list-style: none;
+
+	& li {
+		font-size: var(--step--1);
+		padding: 0.2em 0.75em;
+		border-radius: 999px;
+		background: var(--paper-2);
+		border: 1px solid var(--line);
+	}
+}
+
+/* ───────────── Revelado al hacer scroll ─────────────
+ * Mejora progresiva: sin soporte o con movimiento reducido el contenido
+ * se muestra en su estado final.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	@supports (animation-timeline: view()) {
+		.reveal {
+			animation: reveal-up linear both;
+			animation-timeline: view();
+			animation-range: entry 0% entry 60%;
+		}
+	}
+}
+
+@keyframes reveal-up {
+	from {
+		opacity: 0;
+		translate: 0 2.5rem;
+	}
+}
+
+/* ───────────── Transiciones entre páginas ───────────── */
+@media (prefers-reduced-motion: no-preference) {
+	@view-transition {
+		navigation: auto;
+	}
+}
+
+@media (forced-colors: active) {
+	.btn {
+		border-color: ButtonText;
+	}
+}

@@ -1,0 +1,42 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
+import { categories, categoryPath } from '../data/categories';
+import { url } from '../data/site';
+---
+
+<Layout title="Página no encontrada" description="La página que buscas no existe. Descubre nuestras invitaciones digitales." noindex>
+	<section class="section">
+		<div class="container nf">
+			<span class="kicker">¡Ups! Esta invitación se perdió</span>
+			<h1>Página no encontrada</h1>
+			<p>Puede que el enlace haya cambiado. Estas son nuestras categorías de invitaciones digitales:</p>
+			<ul class="chips">
+				{
+					categories.map((c) => (
+						<li>
+							<a href={url(categoryPath(c))}>{c.name}</a>
+						</li>
+					))
+				}
+			</ul>
+			<a class="btn" href={url('/')}>
+				Volver al inicio
+				<Icon name="arrow" />
+			</a>
+		</div>
+	</section>
+</Layout>
+
+<style>
+	.nf {
+		display: grid;
+		justify-items: start;
+		gap: 1rem;
+		max-inline-size: 46rem;
+
+		& .chips {
+			margin-block-end: 1rem;
+		}
+	}
+</style>
