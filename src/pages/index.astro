@@ -9,6 +9,8 @@ import Plans from '../components/Plans.astro';
 import Process from '../components/Process.astro';
 import FaqList from '../components/FaqList.astro';
 import CtaBand from '../components/CtaBand.astro';
+import Reels from '../components/Reels.astro';
+import { featuredReels } from '../data/reels';
 import heroImage from '../assets/stock/boda-pareja.jpg';
 import { categories, categoryPath } from '../data/categories';
 import { generalFaqs, plans } from '../data/content';
@@ -126,6 +128,13 @@ const jsonLd = [
 			</ul>
 		</nav>
 	</section>
+
+	<!-- ───────── Reels ───────── -->
+	<Reels
+		reels={featuredReels()}
+		title="Nuestras invitaciones en video"
+		lead="Así se ven y se sienten en el celular de tus invitados. Toca un reel y desliza para ver más."
+	/>
 
 	<!-- ───────── Categorías ───────── -->
 	<section class="section" id="categorias" aria-labelledby="categorias-title">

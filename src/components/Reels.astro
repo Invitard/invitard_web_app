@@ -1,0 +1,1032 @@
+---
+/**
+ * Sección de reels: una fila de tarjetas verticales que se animan al verse y,
+ * al tocarlas, un visor a pantalla completa con scroll vertical tipo TikTok.
+ */
+import Icon from './Icon.astro';
+import ReelMedia from './ReelMedia.astro';
+import type { Reel } from '../data/reels';
+import { categories, categoryPath } from '../data/categories';
+import { url, whatsappLink } from '../data/site';
+
+interface Props {
+	reels: Reel[];
+	id?: string;
+	kicker?: string;
+	title: string;
+	lead?: string;
+}
+
+const { reels, id = 'reels', kicker = 'Míralas en acción', title, lead } = Astro.props;
+const titleId = `${id}-title`;
+const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
+---
+
+<section class="reels" {id} aria-labelledby={titleId} data-reels>
+	<div class="container reels-head">
+		<div>
+			<span class="kicker">{kicker}</span>
+			<h2 id={titleId}>{title}</h2>
+			{lead && <p>{lead}</p>}
+		</div>
+		<div class="reels-head-actions">
+			<button class="btn btn--sky reels-open-all" type="button" data-open="0">
+				<Icon name="play" />
+				Ver reels
+			</button>
+			<div class="shelf-nav" aria-hidden="true">
+				<button type="button" class="round-btn" data-shelf="-1" tabindex="-1"><Icon name="arrow" class="flip" /></button>
+				<button type="button" class="round-btn" data-shelf="1" tabindex="-1"><Icon name="arrow" /></button>
+			</div>
+		</div>
+	</div>
+
+	<ul class="shelf" role="list">
+		{
+			reels.map((r, i) => {
+				const cat = catOf(r);
+				return (
+					<li class="reel-card">
+						<button class="reel-card-btn" type="button" data-open={i} aria-label={`Ver reel: modelo «${r.title}» de ${cat.name.toLowerCase()}`}>
+							<ReelMedia reel={r} widths={[240, 360, 480]} sizes="(width >= 46rem) 15rem, 44vw" />
+							<span class="reel-card-play" aria-hidden="true">
+								<Icon name="play" size="1.1rem" />
+							</span>
+							<span class="reel-card-meta" aria-hidden="true">
+								<span class="reel-card-cat">{cat.name}</span>
+								<span class="reel-card-title">{r.title}</span>
+							</span>
+						</button>
+					</li>
+				);
+			})
+		}
+	</ul>
+
+	<dialog class="viewer" aria-label={title}>
+		<div class="feed" data-feed>
+			{
+				reels.map((r, i) => {
+					const cat = catOf(r);
+					const message = `¡Hola Invitard! Vi el reel del modelo «${r.title}» (${cat.name}). ¿Me envían una demo? ✨`;
+					return (
+						<article class="slide" id={`reel-${r.id}`} data-index={i} data-title={r.title} aria-label={`Modelo «${r.title}», ${i + 1} de ${reels.length}`}>
+							<div class="slide-frame" data-tap>
+								<ReelMedia reel={r} widths={[480, 720, 1080]} sizes="(min-aspect-ratio: 3/4) 56vh, 100vw" />
+								<span class="slide-paused" aria-hidden="true">
+									<Icon name="play" size="2.2rem" />
+								</span>
+								<div class="slide-info">
+									<a class="slide-cat" href={url(categoryPath(cat))}>
+										{cat.name}
+									</a>
+									<h3>Modelo «{r.title}»</h3>
+									<p>{r.caption}</p>
+									<ul class="slide-tags" role="list">
+										{r.tags.map((t) => (
+											<li>#{t.replace(/\s+(\S)/g, (_, ch: string) => ch.toUpperCase())}</li>
+										))}
+									</ul>
+									<a class="btn btn--whatsapp slide-cta" href={whatsappLink(message)} rel="noopener" target="_blank">
+										<Icon name="whatsapp" />
+										Quiero una así
+									</a>
+								</div>
+							</div>
+							<div class="slide-rail">
+								<button type="button" class="rail-btn" data-like aria-pressed="false">
+									<span class="rail-icon">
+										<Icon name="heartFill" size="1.6rem" />
+									</span>
+									<span class="rail-label">Me gusta</span>
+								</button>
+								<button type="button" class="rail-btn" data-share>
+									<span class="rail-icon">
+										<Icon name="share" size="1.5rem" />
+									</span>
+									<span class="rail-label">Compartir</span>
+								</button>
+								<a class="rail-btn rail-btn--wa" href={whatsappLink(message)} rel="noopener" target="_blank">
+									<span class="rail-icon">
+										<Icon name="whatsapp" size="1.5rem" />
+									</span>
+									<span class="rail-label">Pedir demo</span>
+								</a>
+							</div>
+						</article>
+					);
+				})
+			}
+		</div>
+
+		<div class="viewer-top">
+			<button type="button" class="round-btn round-btn--glass" data-mute hidden aria-pressed="false">
+				<span class="when-muted"><Icon name="muted" size="1.3rem" /></span>
+				<span class="when-sound"><Icon name="volume" size="1.3rem" /></span>
+				<span class="visually-hidden">Silenciar</span>
+			</button>
+			<span class="viewer-count" aria-live="polite"><span data-count>1</span> / {reels.length}</span>
+			<form method="dialog">
+				<button class="round-btn round-btn--glass" aria-label="Cerrar reels">
+					<Icon name="close" size="1.4rem" />
+				</button>
+			</form>
+		</div>
+
+		<div class="viewer-nav">
+			<button type="button" class="round-btn round-btn--glass" data-step="-1" aria-label="Reel anterior">
+				<Icon name="up" size="1.4rem" />
+			</button>
+			<button type="button" class="round-btn round-btn--glass" data-step="1" aria-label="Reel siguiente">
+				<Icon name="down" size="1.4rem" />
+			</button>
+		</div>
+
+		<div class="swipe-hint" aria-hidden="true">
+			<Icon name="up" size="1.8rem" />
+			Desliza para ver más
+		</div>
+		<div class="toast" role="status" aria-live="polite"></div>
+	</dialog>
+</section>
+
+<style>
+	/* ───────── Sección ───────── */
+	.reels {
+		--glow-1: oklch(0.55 0.17 20 / 0.45);
+		--glow-2: oklch(0.55 0.14 235 / 0.5);
+		position: relative;
+		overflow: clip;
+		padding-block: clamp(3.5rem, 2.5rem + 4vw, 6rem);
+		color: white;
+		background:
+			radial-gradient(ellipse 50% 60% at 10% 0%, var(--glow-1), transparent 70%),
+			radial-gradient(ellipse 50% 70% at 95% 100%, var(--glow-2), transparent 70%),
+			oklch(0.18 0.025 275);
+	}
+
+	.reels-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: end;
+		justify-content: space-between;
+		gap: 1.25rem 2rem;
+		margin-block-end: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+
+		& > div:first-child {
+			max-inline-size: 42rem;
+		}
+
+		& h2 {
+			margin-block-end: 0.35em;
+		}
+
+		& p {
+			margin: 0;
+			font-size: var(--step-1);
+			line-height: 1.5;
+			color: oklch(0.88 0.02 260);
+		}
+
+		& .kicker {
+			color: var(--sky);
+		}
+	}
+
+	.reels-head-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+
+		@media (width < 46rem) {
+			inline-size: 100%;
+
+			& .reels-open-all {
+				flex: 1;
+			}
+		}
+	}
+
+	.shelf-nav {
+		display: none;
+		gap: 0.5rem;
+
+		@media (width >= 46rem) and (hover: hover) {
+			display: flex;
+		}
+	}
+
+	.round-btn {
+		display: grid;
+		place-items: center;
+		inline-size: 3rem;
+		block-size: 3rem;
+		padding: 0;
+		border: 1px solid oklch(1 0 0 / 0.25);
+		border-radius: 50%;
+		background: oklch(1 0 0 / 0.08);
+		color: white;
+		cursor: pointer;
+		transition:
+			background-color 0.2s,
+			scale 0.2s;
+
+		&:hover {
+			background: oklch(1 0 0 / 0.2);
+		}
+
+		&:active {
+			scale: 0.92;
+		}
+
+		&[hidden] {
+			display: none;
+		}
+
+		& :global(.flip) {
+			rotate: 180deg;
+		}
+	}
+
+	.round-btn--glass {
+		background: oklch(0.15 0.02 270 / 0.45);
+		backdrop-filter: blur(10px);
+	}
+
+	/* ───────── Fila de tarjetas ───────── */
+	.shelf {
+		--card-w: clamp(9.5rem, 44vw, 15rem);
+		display: grid;
+		grid-auto-flow: column;
+		grid-auto-columns: var(--card-w);
+		gap: clamp(0.75rem, 0.5rem + 1vw, 1.25rem);
+		margin: 0;
+		padding: 0.75rem max(var(--gutter), (100% - var(--content)) / 2) 1.5rem;
+		list-style: none;
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-snap-type: x mandatory;
+		scroll-padding-inline: max(var(--gutter), (100% - var(--content)) / 2);
+		scrollbar-width: none;
+
+		&::-webkit-scrollbar {
+			display: none;
+		}
+	}
+
+	.reel-card {
+		scroll-snap-align: start;
+	}
+
+	.reel-card-btn {
+		position: relative;
+		display: block;
+		inline-size: 100%;
+		aspect-ratio: 9 / 16;
+		padding: 0;
+		border: 0;
+		border-radius: 1.25rem;
+		overflow: clip;
+		background: oklch(0.25 0.02 270);
+		color: white;
+		font: inherit;
+		text-align: start;
+		cursor: pointer;
+		box-shadow:
+			0 0 0 1px oklch(1 0 0 / 0.12),
+			0 24px 40px -20px oklch(0 0 0 / 0.7);
+		transition:
+			translate 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+			box-shadow 0.3s;
+
+		&:hover,
+		&:focus-visible {
+			translate: 0 -6px;
+			box-shadow:
+				0 0 0 2px var(--sky),
+				0 30px 50px -20px oklch(0 0 0 / 0.8);
+		}
+
+		/* En la fila la invitación va más simple: sin contador ni botón */
+		& :global(.ri-btn),
+		& :global(.ri-count) {
+			display: none;
+		}
+
+		& :global(.reel-invite) {
+			padding-block-end: 34%;
+		}
+	}
+
+	.reel-card-play {
+		position: absolute;
+		inset-block-start: 1.1rem;
+		inset-inline-end: 0.7rem;
+		z-index: 2;
+		display: grid;
+		place-items: center;
+		inline-size: 2rem;
+		block-size: 2rem;
+		border-radius: 50%;
+		background: oklch(0 0 0 / 0.35);
+		backdrop-filter: blur(6px);
+		padding-inline-start: 2px;
+	}
+
+	.reel-card-meta {
+		position: absolute;
+		inset: auto 0 0;
+		z-index: 2;
+		display: grid;
+		gap: 0.1rem;
+		padding: 2rem 0.8rem 0.8rem;
+		background: linear-gradient(transparent, oklch(0.1 0.02 270 / 0.85));
+		line-height: 1.2;
+	}
+
+	.reel-card-cat {
+		inline-size: fit-content;
+		max-inline-size: 100%;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		padding: 0.1rem 0.55rem;
+		border-radius: 999px;
+		background: oklch(1 0 0 / 0.2);
+		backdrop-filter: blur(6px);
+		font-size: 0.72rem;
+		font-weight: 600;
+	}
+
+	.reel-card-title {
+		font-weight: 700;
+		font-size: 0.95rem;
+	}
+
+	/* ───────── Visor a pantalla completa ───────── */
+	.viewer {
+		position: fixed;
+		inset: 0;
+		inline-size: 100%;
+		block-size: 100dvh;
+		max-inline-size: none;
+		max-block-size: none;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		background: oklch(0.12 0.02 275);
+		color: white;
+		overflow: hidden;
+
+		&::backdrop {
+			background: oklch(0.1 0.02 275);
+		}
+
+		@media (prefers-reduced-motion: no-preference) {
+			&[open] {
+				animation: viewer-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+			}
+		}
+	}
+
+	@keyframes viewer-in {
+		from {
+			opacity: 0;
+			scale: 0.96;
+		}
+	}
+
+	:global(html:has(.viewer[open])) {
+		overflow: hidden;
+	}
+
+	.feed {
+		block-size: 100%;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		scroll-snap-type: y mandatory;
+		scrollbar-width: none;
+
+		&::-webkit-scrollbar {
+			display: none;
+		}
+	}
+
+	.slide {
+		position: relative;
+		display: grid;
+		place-items: center;
+		block-size: 100%;
+		scroll-snap-align: start;
+		scroll-snap-stop: always;
+	}
+
+	.slide-frame {
+		position: absolute;
+		inset: 0;
+		overflow: clip;
+		cursor: pointer;
+		-webkit-tap-highlight-color: transparent;
+
+		& :global(.reel-progress) {
+			inset-block-start: max(0.6rem, env(safe-area-inset-top));
+		}
+
+		& :global(.reel-invite) {
+			padding-block-end: 58%;
+		}
+
+		& :global(.ri-btn) {
+			display: none;
+		}
+	}
+
+	/* Pantallas anchas: el reel es un celular centrado, como en TikTok web */
+	@media (min-aspect-ratio: 3/4) {
+		.slide {
+			grid-template-columns: auto auto;
+			justify-content: center;
+			align-items: end;
+			gap: 1.25rem;
+			padding-block: 1.5rem;
+		}
+
+		.slide-frame {
+			position: relative;
+			inset: auto;
+			block-size: calc(100dvh - 3rem);
+			aspect-ratio: 9 / 16;
+			border-radius: 1.5rem;
+			box-shadow: 0 0 0 1px oklch(1 0 0 / 0.1);
+
+			& :global(.reel-invite) {
+				padding-block-end: 52%;
+			}
+		}
+	}
+
+	.slide-paused {
+		position: absolute;
+		inset: 0;
+		z-index: 3;
+		display: grid;
+		place-items: center;
+		pointer-events: none;
+		opacity: 0;
+		transition: opacity 0.2s;
+
+		& :global(svg) {
+			box-sizing: content-box;
+			padding: 1.1rem 1rem 1.1rem 1.2rem;
+			border-radius: 50%;
+			background: oklch(0 0 0 / 0.4);
+		}
+	}
+
+	:global(.is-paused) > .slide-paused {
+		opacity: 1;
+	}
+
+	.slide-info {
+		position: absolute;
+		inset: auto 0 0;
+		z-index: 2;
+		padding: 5rem 5rem max(1.25rem, env(safe-area-inset-bottom)) 1rem;
+		background: linear-gradient(transparent, oklch(0.08 0.02 270 / 0.92) 55%);
+		cursor: auto;
+
+		& h3 {
+			margin-block: 0.5rem 0.25rem;
+			font-size: 1.2rem;
+		}
+
+		& p {
+			margin-block-end: 0.5rem;
+			font-size: 0.92rem;
+			line-height: 1.45;
+			color: oklch(0.92 0.01 260);
+		}
+
+		@media (min-aspect-ratio: 3/4) {
+			padding-inline-end: 1rem;
+		}
+	}
+
+	.slide-cat {
+		display: inline-block;
+		padding: 0.15rem 0.7rem;
+		border-radius: 999px;
+		background: oklch(1 0 0 / 0.18);
+		backdrop-filter: blur(6px);
+		color: white;
+		font-size: 0.8rem;
+		font-weight: 600;
+		text-decoration: none;
+
+		&:hover {
+			background: oklch(1 0 0 / 0.3);
+		}
+	}
+
+	.slide-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.2rem 0.6rem;
+		margin: 0 0 0.9rem;
+		padding: 0;
+		list-style: none;
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: var(--sky);
+	}
+
+	.slide-cta {
+		inline-size: 100%;
+		min-block-size: 2.9rem;
+	}
+
+	/* Acciones laterales */
+	.slide-rail {
+		position: absolute;
+		inset-inline-end: 0.6rem;
+		inset-block-end: 11rem;
+		z-index: 3;
+		display: grid;
+		gap: 1rem;
+
+		@media (min-aspect-ratio: 3/4) {
+			position: static;
+			padding-block-end: 1rem;
+		}
+	}
+
+	.rail-btn {
+		display: grid;
+		justify-items: center;
+		gap: 0.25rem;
+		padding: 0;
+		border: 0;
+		background: none;
+		color: white;
+		font: inherit;
+		font-size: 0.72rem;
+		font-weight: 600;
+		text-decoration: none;
+		cursor: pointer;
+		text-shadow: 0 1px 4px oklch(0 0 0 / 0.5);
+	}
+
+	.rail-icon {
+		display: grid;
+		place-items: center;
+		inline-size: 3rem;
+		block-size: 3rem;
+		border-radius: 50%;
+		background: oklch(0.15 0.02 270 / 0.5);
+		backdrop-filter: blur(8px);
+		transition:
+			scale 0.2s,
+			background-color 0.2s,
+			color 0.2s;
+
+		.rail-btn:active & {
+			scale: 0.88;
+		}
+	}
+
+	.rail-btn[aria-pressed='true'] .rail-icon {
+		color: oklch(0.68 0.22 18);
+		background: white;
+
+		@media (prefers-reduced-motion: no-preference) {
+			animation: like-pop 0.4s cubic-bezier(0.2, 1.6, 0.4, 1);
+		}
+	}
+
+	.rail-btn--wa .rail-icon {
+		background: var(--whatsapp);
+		color: var(--ink);
+	}
+
+	@keyframes like-pop {
+		40% {
+			scale: 1.3;
+		}
+	}
+
+	/* Corazón al dar doble toque */
+	:global(.burst) {
+		position: absolute;
+		z-index: 4;
+		inline-size: 6rem;
+		block-size: 6rem;
+		margin: -3rem 0 0 -3rem;
+		color: oklch(0.68 0.22 18);
+		pointer-events: none;
+		filter: drop-shadow(0 6px 16px oklch(0 0 0 / 0.4));
+		animation: burst 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+	}
+
+	@keyframes burst {
+		0% {
+			opacity: 0;
+			scale: 0.3;
+			rotate: -15deg;
+		}
+		25% {
+			opacity: 1;
+			scale: 1.15;
+		}
+		45% {
+			scale: 0.95;
+		}
+		100% {
+			opacity: 0;
+			scale: 1.4;
+			translate: 0 -40px;
+		}
+	}
+
+	/* Barra superior y navegación */
+	.viewer-top {
+		position: absolute;
+		inset: max(1.2rem, env(safe-area-inset-top)) 0.75rem auto;
+		z-index: 5;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		pointer-events: none;
+
+		& > * {
+			pointer-events: auto;
+		}
+
+		& form {
+			margin-inline-start: auto;
+		}
+
+		@media (min-aspect-ratio: 3/4) {
+			inset-inline: 1.5rem;
+		}
+	}
+
+	.viewer-count {
+		font-size: 0.85rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		text-shadow: 0 1px 4px oklch(0 0 0 / 0.6);
+
+		[data-mute][hidden] + & {
+			margin-inline-start: 0.5rem;
+		}
+	}
+
+	[data-mute] .when-sound,
+	[data-mute][aria-pressed='false'] .when-muted {
+		display: none;
+	}
+
+	[data-mute][aria-pressed='false'] .when-sound {
+		display: block;
+	}
+
+	.viewer-nav {
+		position: absolute;
+		inset-inline-end: 1.5rem;
+		inset-block-start: 50%;
+		z-index: 5;
+		display: none;
+		gap: 0.75rem;
+		translate: 0 -50%;
+
+		@media (min-aspect-ratio: 3/4) {
+			display: grid;
+		}
+
+		& button:disabled {
+			opacity: 0.3;
+			cursor: default;
+		}
+	}
+
+	.swipe-hint {
+		position: absolute;
+		inset: 22% 0 auto;
+		z-index: 4;
+		display: none;
+		justify-items: center;
+		gap: 0.25rem;
+		font-weight: 650;
+		text-shadow: 0 1px 6px oklch(0 0 0 / 0.6);
+		pointer-events: none;
+
+		@media (pointer: coarse) {
+			.viewer.show-hint & {
+				display: grid;
+			}
+		}
+
+		@media (prefers-reduced-motion: no-preference) {
+			& :global(svg) {
+				animation: nudge 1.2s ease-in-out infinite;
+			}
+		}
+	}
+
+	@keyframes nudge {
+		50% {
+			translate: 0 -10px;
+		}
+	}
+
+	.toast {
+		position: absolute;
+		inset: auto 50% 2rem auto;
+		z-index: 6;
+		translate: 50% 0;
+		padding: 0.6rem 1.1rem;
+		border-radius: 999px;
+		background: white;
+		color: var(--ink);
+		font-size: 0.9rem;
+		font-weight: 600;
+		opacity: 0;
+		transition: opacity 0.25s;
+		pointer-events: none;
+
+		&.is-visible {
+			opacity: 1;
+		}
+	}
+</style>
+
+<script>
+	const LIKES_KEY = 'invitard:reels-liked';
+	const canHover = matchMedia('(hover: hover)').matches;
+	const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+	function loadLikes(): Set<string> {
+		try {
+			return new Set(JSON.parse(localStorage.getItem(LIKES_KEY) ?? '[]'));
+		} catch {
+			return new Set();
+		}
+	}
+
+	function saveLikes(likes: Set<string>) {
+		try {
+			localStorage.setItem(LIKES_KEY, JSON.stringify([...likes]));
+		} catch {
+			/* almacenamiento no disponible */
+		}
+	}
+
+	/** Reproduce el video de un contenedor (cargándolo la primera vez). */
+	function playVideo(scope: Element, { muted = true, restart = false } = {}): HTMLVideoElement | null {
+		const video = scope.querySelector<HTMLVideoElement>('.reel-video');
+		if (!video) return null;
+		if (!video.src && video.dataset.src) video.src = video.dataset.src;
+		if (restart) video.currentTime = 0;
+		video.muted = muted;
+		video.play().catch(() => {
+			// Si el navegador bloquea el sonido, reintenta en silencio.
+			if (!video.muted) {
+				video.muted = true;
+				video.play().catch(() => {});
+			}
+		});
+		return video;
+	}
+
+	function pauseVideo(scope: Element) {
+		scope.querySelector<HTMLVideoElement>('.reel-video')?.pause();
+	}
+
+	for (const video of document.querySelectorAll<HTMLVideoElement>('[data-reels] .reel-video')) {
+		video.addEventListener('playing', () => video.classList.add('is-playing'));
+	}
+
+	const likes = loadLikes();
+
+	for (const root of document.querySelectorAll<HTMLElement>('[data-reels]')) {
+		const shelf = root.querySelector<HTMLElement>('.shelf')!;
+		const cards = [...root.querySelectorAll<HTMLElement>('.reel-card-btn')];
+		const viewer = root.querySelector<HTMLDialogElement>('.viewer')!;
+		const feed = viewer.querySelector<HTMLElement>('[data-feed]')!;
+		const slides = [...viewer.querySelectorAll<HTMLElement>('.slide')];
+		const muteBtn = viewer.querySelector<HTMLButtonElement>('[data-mute]')!;
+		const countEl = viewer.querySelector<HTMLElement>('[data-count]')!;
+		const stepBtns = [...viewer.querySelectorAll<HTMLButtonElement>('[data-step]')];
+		const toast = viewer.querySelector<HTMLElement>('.toast')!;
+		let active = -1;
+		let muted = false;
+		/** Cómo se registró el visor en el historial: 'push' (al tocar) o 'replace' (enlace compartido). */
+		let historyMode: 'push' | 'replace' | null = null;
+
+		/* ── Fila: anima las tarjetas visibles ── */
+		const shelfObserver = new IntersectionObserver(
+			(entries) => {
+				for (const e of entries) {
+					const card = e.target as HTMLElement;
+					card.classList.toggle('is-live', e.isIntersecting);
+					if (canHover || reduceMotion) continue;
+					if (e.isIntersecting) playVideo(card);
+					else pauseVideo(card);
+				}
+			},
+			{ threshold: 0.6 },
+		);
+		cards.forEach((c) => shelfObserver.observe(c));
+
+		if (canHover && !reduceMotion) {
+			for (const card of cards) {
+				card.addEventListener('pointerenter', () => playVideo(card));
+				card.addEventListener('pointerleave', () => pauseVideo(card));
+			}
+		}
+
+		for (const btn of root.querySelectorAll<HTMLButtonElement>('[data-shelf]')) {
+			btn.addEventListener('click', () => {
+				shelf.scrollBy({ left: Number(btn.dataset.shelf) * shelf.clientWidth * 0.8, behavior: 'smooth' });
+			});
+		}
+
+		/* ── Visor ── */
+		function showToast(text: string) {
+			toast.textContent = text;
+			toast.classList.add('is-visible');
+			setTimeout(() => toast.classList.remove('is-visible'), 1800);
+		}
+
+		function setActive(index: number) {
+			if (index === active) return;
+			active = index;
+			slides.forEach((s, i) => {
+				const on = i === index;
+				s.classList.toggle('is-live', on);
+				s.querySelector('[data-tap]')!.classList.remove('is-paused');
+				if (!on) pauseVideo(s);
+			});
+			// Carga ya la imagen del reel actual y de sus vecinos.
+			for (const s of slides.slice(Math.max(0, index - 1), index + 3)) {
+				s.querySelectorAll('img[loading="lazy"]').forEach((img) => img.setAttribute('loading', 'eager'));
+			}
+			const slide = slides[index];
+			const video = playVideo(slide, { muted, restart: true });
+			muteBtn.hidden = !video;
+			countEl.textContent = String(index + 1);
+			stepBtns[0].disabled = index === 0;
+			stepBtns[1].disabled = index === slides.length - 1;
+			if (historyMode) history.replaceState(history.state, '', `#${slide.id}`);
+		}
+
+		const feedObserver = new IntersectionObserver(
+			(entries) => {
+				for (const e of entries) {
+					if (e.isIntersecting) setActive(Number((e.target as HTMLElement).dataset.index));
+				}
+			},
+			{ root: feed, threshold: 0.6 },
+		);
+		slides.forEach((s) => feedObserver.observe(s));
+
+		function open(index: number, { fromHash = false } = {}) {
+			active = -1;
+			viewer.showModal();
+			feed.scrollTo({ top: slides[index].offsetTop, behavior: 'instant' });
+			setActive(index);
+			viewer.classList.toggle('show-hint', index < slides.length - 1);
+			if (fromHash) {
+				historyMode = 'replace';
+			} else {
+				history.pushState({ reels: true }, '', `#${slides[index].id}`);
+				historyMode = 'push';
+			}
+		}
+
+		root.querySelectorAll<HTMLButtonElement>('[data-open]').forEach((btn) => {
+			btn.addEventListener('click', () => open(Number(btn.dataset.open)));
+		});
+
+		viewer.addEventListener('close', () => {
+			slides.forEach((s) => {
+				pauseVideo(s);
+				s.classList.remove('is-live');
+			});
+			active = -1;
+			const mode = historyMode;
+			historyMode = null;
+			if (mode === 'push') history.back();
+			else if (mode === 'replace') history.replaceState(history.state, '', location.pathname + location.search);
+		});
+
+		// Botón «atrás» del celular: cierra el visor en lugar de salir de la página.
+		addEventListener('popstate', () => {
+			if (viewer.open) {
+				historyMode = null;
+				viewer.close();
+			}
+		});
+
+		feed.addEventListener('scroll', () => viewer.classList.remove('show-hint'), { passive: true });
+
+		function step(delta: number) {
+			const next = Math.min(slides.length - 1, Math.max(0, active + delta));
+			feed.scrollTo({ top: slides[next].offsetTop, behavior: reduceMotion ? 'instant' : 'smooth' });
+		}
+
+		stepBtns.forEach((b) => b.addEventListener('click', () => step(Number(b.dataset.step))));
+
+		viewer.addEventListener('keydown', (e) => {
+			if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === 'j') {
+				e.preventDefault();
+				step(1);
+			} else if (e.key === 'ArrowUp' || e.key === 'PageUp' || e.key === 'k') {
+				e.preventDefault();
+				step(-1);
+			} else if (e.key === 'm') {
+				muteBtn.click();
+			}
+		});
+
+		muteBtn.addEventListener('click', () => {
+			muted = !muted;
+			muteBtn.setAttribute('aria-pressed', String(muted));
+			const video = slides[active]?.querySelector<HTMLVideoElement>('.reel-video');
+			if (video) video.muted = muted;
+		});
+
+		/* Me gusta (guardado en el navegador) */
+		function setLiked(slide: HTMLElement, liked: boolean) {
+			const id = slide.id;
+			if (liked) likes.add(id);
+			else likes.delete(id);
+			saveLikes(likes);
+			slide.querySelector('[data-like]')!.setAttribute('aria-pressed', String(liked));
+		}
+
+		for (const slide of slides) {
+			const likeBtn = slide.querySelector<HTMLButtonElement>('[data-like]')!;
+			likeBtn.setAttribute('aria-pressed', String(likes.has(slide.id)));
+			likeBtn.addEventListener('click', () => setLiked(slide, likeBtn.getAttribute('aria-pressed') !== 'true'));
+
+			slide.querySelector('[data-share]')!.addEventListener('click', async () => {
+				const shareUrl = `${location.origin}${location.pathname}#${slide.id}`;
+				const title = `Invitación digital «${slide.dataset.title}» · Invitard`;
+				try {
+					if (navigator.share) await navigator.share({ title, url: shareUrl });
+					else {
+						await navigator.clipboard.writeText(shareUrl);
+						showToast('Enlace copiado');
+					}
+				} catch {
+					/* compartir cancelado */
+				}
+			});
+
+			// Toque: pausa / reanuda. Doble toque: me gusta con corazón.
+			const frame = slide.querySelector<HTMLElement>('[data-tap]')!;
+			let tapTimer = 0;
+			frame.addEventListener('click', (e) => {
+				if ((e.target as Element).closest('a, button, .slide-info')) return;
+				if (tapTimer) {
+					clearTimeout(tapTimer);
+					tapTimer = 0;
+					setLiked(slide, true);
+					const rect = frame.getBoundingClientRect();
+					const heart = document.createElement('span');
+					heart.className = 'burst';
+					heart.innerHTML = likeBtn.querySelector('svg')!.outerHTML;
+					heart.style.left = `${e.clientX - rect.left}px`;
+					heart.style.top = `${e.clientY - rect.top}px`;
+					heart.querySelector('svg')!.setAttribute('width', '100%');
+					heart.querySelector('svg')!.setAttribute('height', '100%');
+					frame.append(heart);
+					heart.addEventListener('animationend', () => heart.remove());
+					return;
+				}
+				tapTimer = window.setTimeout(() => {
+					tapTimer = 0;
+					const paused = frame.classList.toggle('is-paused');
+					const video = frame.querySelector<HTMLVideoElement>('.reel-video');
+					if (video) paused ? video.pause() : video.play().catch(() => {});
+				}, 260);
+			});
+
+			// Progreso del video real
+			const video = slide.querySelector<HTMLVideoElement>('.reel-video');
+			video?.addEventListener('timeupdate', () => {
+				const bar = slide.querySelector<HTMLElement>('.reel-progress');
+				bar?.style.setProperty('--progress', String(video.currentTime / (video.duration || 1)));
+			});
+		}
+
+		// Enlace compartido: abre el visor directamente en ese reel.
+		const fromHash = slides.findIndex((s) => `#${s.id}` === location.hash);
+		if (fromHash >= 0) {
+			root.scrollIntoView({ behavior: 'instant' });
+			open(fromHash, { fromHash: true });
+		}
+	}
+</script>
