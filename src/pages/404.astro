@@ -5,7 +5,7 @@ import { categories, categoryPath } from '../data/categories';
 import { url } from '../data/site';
 ---
 
-<Layout title="Página no encontrada" description="La página que buscas no existe. Descubre nuestras invitaciones digitales." noindex>
+<Layout title="Página no encontrada" description="La página que buscas no existe. Descubre nuestras invitaciones digitales." noindex alternates={{}}>
 	<section class="section">
 		<div class="container nf">
 			<span class="kicker">¡Ups! Esta invitación se perdió</span>
@@ -20,10 +20,15 @@ import { url } from '../data/site';
 					))
 				}
 			</ul>
-			<a class="btn" href={url('/')}>
-				Volver al inicio
-				<Icon name="arrow" />
-			</a>
+			<div class="nf-actions">
+				<a class="btn" href={url('/')}>
+					Volver al inicio
+					<Icon name="arrow" />
+				</a>
+				<a class="btn btn--ghost" href={url('/en/')} hreflang="en" lang="en">
+					Page not found · Go to the English site
+				</a>
+			</div>
 		</div>
 	</section>
 </Layout>
@@ -38,5 +43,11 @@ import { url } from '../data/site';
 		& .chips {
 			margin-block-end: 1rem;
 		}
+	}
+
+	.nf-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
 	}
 </style>

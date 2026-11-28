@@ -307,3 +307,12 @@ a {
 		border-color: ButtonText;
 	}
 }
+
+/* ───────────── Moneda ─────────────
+ * Cada precio se escribe en soles (.in-pen) y en dólares (.in-usd); el atributo
+ * data-currency de <html> (Perú → pen, resto del mundo → usd) decide cuál se ve.
+ */
+html:not([data-currency='usd']) .in-usd,
+html[data-currency='usd'] .in-pen {
+	display: none !important;
+}

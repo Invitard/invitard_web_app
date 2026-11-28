@@ -2,15 +2,50 @@
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
 import { url, whatsappLink } from '../data/site';
+import { getLang, routes, langMeta } from '../i18n';
 
-const links = [
-	{ href: url('/invitaciones/'), label: 'Categorías', match: '/invitaciones/' },
-	{ href: url('/#reels'), label: 'Reels' },
-	{ href: url('/#catalogo'), label: 'Catálogo' },
-	{ href: url('/#planes'), label: 'Planes' },
-	{ href: url('/#proceso'), label: 'Cómo funciona' },
-	{ href: url('/#preguntas'), label: 'Preguntas' },
-];
+interface Props {
+	/** Enlace (con base path) a esta misma página en el otro idioma. */
+	altHref?: string;
+}
+
+const lang = getLang(Astro.url);
+const other = lang === 'es' ? 'en' : 'es';
+const home = routes.home[lang];
+const { altHref = url(routes.home[other]) } = Astro.props;
+
+const copy = {
+	es: {
+		links: [
+			{ href: url(routes.categories.es), label: 'Categorías', match: routes.categories.es },
+			{ href: url('/#shorts'), label: 'Shorts' },
+			{ href: url('/#planes'), label: 'Planes' },
+			{ href: url('/#proceso'), label: 'Cómo funciona' },
+			{ href: url('/#preguntas'), label: 'Preguntas' },
+		],
+		home: 'Invitard, ir al inicio',
+		menu: 'Menú',
+		nav: 'Principal',
+		quote: 'Cotizar',
+		message: '¡Hola Invitard! Quiero cotizar una invitación digital ✨',
+		switchLabel: 'Read in English',
+	},
+	en: {
+		links: [
+			{ href: url(routes.categories.en), label: 'Categories', match: routes.categories.en },
+			{ href: url(`${home}#shorts`), label: 'Shorts' },
+			{ href: url(`${home}#planes`), label: 'Pricing' },
+			{ href: url(`${home}#proceso`), label: 'How it works' },
+			{ href: url(`${home}#preguntas`), label: 'FAQ' },
+		],
+		home: 'Invitard, go to home page',
+		menu: 'Menu',
+		nav: 'Main',
+		quote: 'Get a quote',
+		message: 'Hi Invitard! I’d like a quote for a digital invitation ✨',
+		switchLabel: 'Ver en español',
+	},
+}[lang];
 
 const current = Astro.url.pathname;
 const isCurrent = (match?: string) => (match ? current.startsWith(url(match)) : false);
@@ -18,19 +53,22 @@ const isCurrent = (match?: string) => (match ? current.startsWith(url(match)) : 
 
 <header class="site-header">
 	<div class="header-inner container">
-		<a class="site-logo" href={url('/')} aria-label="Invitard, ir al inicio">
+		<a class="site-logo" href={url(home)} aria-label={copy.home}>
 			<Logo />
 		</a>
 
-		<nav class="site-nav" aria-label="Principal">
+		<nav class="site-nav" aria-label={copy.nav}>
+			<a class="lang-switch" href={altHref} hreflang={other} lang={other} data-lang={other} aria-label={copy.switchLabel}>
+				{langMeta[other].short}
+			</a>
 			<button class="menu-button" type="button" popovertarget="site-menu" popovertargetaction="toggle" aria-controls="site-menu">
 				<Icon name="menu" size="1.35rem" />
-				<span>Menú</span>
+				<span>{copy.menu}</span>
 			</button>
 
 			<ul id="site-menu" class="site-menu" popover="auto">
 				{
-					links.map((l) => (
+					copy.links.map((l) => (
 						<li>
 							<a href={l.href} aria-current={isCurrent(l.match) ? 'page' : undefined}>
 								{l.label}
@@ -39,9 +77,9 @@ const isCurrent = (match?: string) => (match ? current.startsWith(url(match)) : 
 					))
 				}
 				<li class="menu-cta">
-					<a class="btn btn--whatsapp" href={whatsappLink('¡Hola Invitard! Quiero cotizar una invitación digital ✨')} rel="noopener" target="_blank">
+					<a class="btn btn--whatsapp" href={whatsappLink(copy.message)} rel="noopener" target="_blank">
 						<Icon name="whatsapp" />
-						Cotizar
+						{copy.quote}
 					</a>
 				</li>
 			</ul>
@@ -79,6 +117,32 @@ const isCurrent = (match?: string) => (match ? current.startsWith(url(match)) : 
 		& :global(.logo) {
 			--logo-bg: var(--paper);
 			inline-size: clamp(7.5rem, 6.5rem + 3vw, 9rem);
+		}
+	}
+
+	.site-nav {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.lang-switch {
+		display: grid;
+		place-items: center;
+		min-inline-size: 2.75rem;
+		min-block-size: 2.75rem;
+		padding-inline: 0.6rem;
+		border-radius: 999px;
+		background: var(--paper-2);
+		border: 1px solid var(--line);
+		color: var(--ink);
+		font-size: 0.85rem;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		text-decoration: none;
+
+		&:hover {
+			background: var(--sky);
 		}
 	}
 
@@ -260,6 +324,15 @@ const isCurrent = (match?: string) => (match ? current.startsWith(url(match)) : 
 		const ro = new ResizeObserver(sync);
 		ro.observe(header);
 		ro.observe(menu);
+
+		// Guarda el idioma elegido a mano para no volver a redirigir.
+		header.querySelector<HTMLAnchorElement>('.lang-switch')?.addEventListener('click', (e) => {
+			try {
+				localStorage.setItem('invitard:lang', (e.currentTarget as HTMLElement).dataset.lang!);
+			} catch {
+				/* almacenamiento no disponible */
+			}
+		});
 
 		// Cierra el menú al elegir un ancla dentro de la misma página.
 		menu.addEventListener('click', (e) => {

@@ -1,17 +1,21 @@
 ---
 import Icon from './Icon.astro';
 import { whatsappLink } from '../data/site';
+import { getLang } from '../i18n';
 
 interface Props {
 	message?: string;
 }
 
-const { message = '¡Hola Invitard! Quiero cotizar una invitación digital ✨' } = Astro.props;
+const lang = getLang(Astro.url);
+const {
+	message = lang === 'en' ? 'Hi Invitard! I’d like a quote for a digital invitation ✨' : '¡Hola Invitard! Quiero cotizar una invitación digital ✨',
+} = Astro.props;
 ---
 
 <a class="wa-fab" href={whatsappLink(message)} rel="noopener" target="_blank">
 	<Icon name="whatsapp" size="1.9rem" />
-	<span class="visually-hidden">Escríbenos por WhatsApp</span>
+	<span class="visually-hidden">{lang === 'en' ? 'Message us on WhatsApp' : 'Escríbenos por WhatsApp'}</span>
 </a>
 
 <style>

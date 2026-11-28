@@ -12,15 +12,15 @@ export const site = {
 	locale: 'es_PE',
 	lang: 'es-PE',
 	description:
-		'Invitaciones digitales web para bodas, quinceaños, cumpleaños, bautizos, baby shower, primera comunión, mascotas, fiestas patronales, yunsas y eventos empresariales. Con confirmación por WhatsApp, cuenta regresiva, mapa, música y galería. Entrega en Perú y todo el mundo.',
+		'Invitaciones digitales web para bodas, quinceaños, cumpleaños, bautizos, baby shower, primera comunión, mascotas, fiestas patronales, yunsas y eventos empresariales. Con confirmación por WhatsApp, cuenta regresiva, mapa, música y galería. Trabajamos con clientes de todo el mundo, en cualquier idioma.',
+	descriptionEn:
+		'Digital web invitations for weddings, quinceañeras, birthdays, baptisms, baby showers, first communions, pet birthdays, patron saint festivals and corporate events. With WhatsApp RSVP, countdown, map, music and gallery. We work with clients worldwide, in any language.',
 	whatsapp: '51940077408',
 	whatsappDisplay: '+51 940 077 408',
 	// TODO: correo real.
 	email: 'hola@invitard.com',
-	city: 'Cusco',
-	region: 'Cusco',
 	country: 'PE',
-	areaServed: ['Perú', 'Latinoamérica', 'España', 'Estados Unidos'],
+	areaServed: ['Todo el mundo', 'Latinoamérica', 'Estados Unidos', 'Canadá', 'España', 'Europa'],
 	// TODO: URLs reales de redes sociales (se usan en sameAs del schema).
 	social: {
 		instagram: 'https://www.instagram.com/invitard',
@@ -28,7 +28,6 @@ export const site = {
 		tiktok: 'https://www.tiktok.com/@invitard',
 		github: 'https://github.com/Invitard',
 	},
-	priceRange: 'S/ 29 – S/ 299',
 	currency: 'PEN',
 } as const;
 

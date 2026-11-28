@@ -1,6 +1,7 @@
 ---
 import CategoryCard from './CategoryCard.astro';
-import { groups, categoriesByGroup } from '../data/categories';
+import { getGroups, categoriesByGroup } from '../data/categories';
+import { getLang } from '../i18n';
 
 interface Props {
 	/** Nivel del encabezado de cada grupo. */
@@ -8,6 +9,8 @@ interface Props {
 }
 
 const { level = 'h3' } = Astro.props;
+const lang = getLang(Astro.url);
+const groups = getGroups(lang);
 const GroupHeading = level;
 const cardLevel = level === 'h2' ? 'h3' : 'h4';
 ---
@@ -24,7 +27,7 @@ const cardLevel = level === 'h2' ? 'h3' : 'h4';
 					<p>{g.description}</p>
 				</header>
 				<div class="group-grid">
-					{categoriesByGroup(g.id).map((c) => (
+					{categoriesByGroup(g.id, lang).map((c) => (
 						<CategoryCard category={c} headingLevel={cardLevel} />
 					))}
 				</div>

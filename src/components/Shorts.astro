@@ -1,60 +1,170 @@
 ---
 /**
- * Sección de reels: una fila de tarjetas verticales que se animan al verse y,
- * al tocarlas, un visor a pantalla completa con scroll vertical tipo TikTok.
+ * Shorts: el catálogo de modelos en video. Una fila infinita de tarjetas verticales
+ * que avanza sola, con buscador por categoría, y al tocar una tarjeta un visor a
+ * pantalla completa con scroll vertical tipo TikTok.
  */
 import Icon from './Icon.astro';
-import ReelMedia from './ReelMedia.astro';
-import type { Reel } from '../data/reels';
-import { categories, categoryPath } from '../data/categories';
+import ShortMedia from './ShortMedia.astro';
+import type { Short } from '../data/shorts';
+import { getCategories, categoryPath } from '../data/categories';
 import { url, whatsappLink } from '../data/site';
+import { getLang } from '../i18n';
 
 interface Props {
-	reels: Reel[];
+	shorts: Short[];
 	id?: string;
 	kicker?: string;
 	title: string;
 	lead?: string;
+	/** Muestra el buscador y los filtros por categoría. */
+	searchable?: boolean;
 }
 
-const { reels, id = 'reels', kicker = 'Míralas en acción', title, lead } = Astro.props;
+const lang = getLang(Astro.url);
+const copy = {
+	es: {
+		kicker: 'Míralos en acción',
+		watch: 'Ver shorts',
+		prev: 'Anterior',
+		next: 'Siguiente',
+		searchLabel: 'Buscar shorts por tipo de evento',
+		searchPlaceholder: 'Busca: boda, cumpleaños, bautizo…',
+		all: 'Todos',
+		filters: 'Filtrar por categoría',
+		empty: 'No encontramos shorts para esa búsqueda.',
+		emptyCta: 'Pídenos un diseño a medida',
+		emptyMessage: '¡Hola Invitard! Busco una invitación que no vi en sus shorts ✨',
+		cardLabel: (title: string, cat: string) => `Ver short: modelo «${title}» de ${cat.toLowerCase()}`,
+		slideLabel: (title: string, i: number, n: number) => `Modelo «${title}», ${i} de ${n}`,
+		message: (title: string, cat: string) => `¡Hola Invitard! Vi el short del modelo «${title}» (${cat}). ¿Me envían una demo? ✨`,
+		model: (title: string) => `Modelo «${title}»`,
+		want: 'Quiero una así',
+		like: 'Me gusta',
+		share: 'Compartir',
+		demo: 'Pedir demo',
+		mute: 'Silenciar',
+		close: 'Cerrar shorts',
+		prevShort: 'Short anterior',
+		nextShort: 'Short siguiente',
+		swipe: 'Desliza para ver más',
+		copied: 'Enlace copiado',
+		shareTitle: (title: string) => `Invitación digital «${title}» · Invitard`,
+		results: (n: number) => (n === 1 ? '1 short' : `${n} shorts`),
+	},
+	en: {
+		kicker: 'See them in action',
+		watch: 'Watch shorts',
+		prev: 'Previous',
+		next: 'Next',
+		searchLabel: 'Search shorts by event type',
+		searchPlaceholder: 'Search: wedding, birthday, baptism…',
+		all: 'All',
+		filters: 'Filter by category',
+		empty: 'No shorts match that search.',
+		emptyCta: 'Ask us for a custom design',
+		emptyMessage: 'Hi Invitard! I’m looking for an invitation I didn’t see in your shorts ✨',
+		cardLabel: (title: string, cat: string) => `Watch short: “${title}” ${cat.toLowerCase()} design`,
+		slideLabel: (title: string, i: number, n: number) => `“${title}” design, ${i} of ${n}`,
+		message: (title: string, cat: string) => `Hi Invitard! I saw the “${title}” short (${cat}). Could you send me a demo? ✨`,
+		model: (title: string) => `“${title}” design`,
+		want: 'I want one like this',
+		like: 'Like',
+		share: 'Share',
+		demo: 'Get a demo',
+		mute: 'Mute',
+		close: 'Close shorts',
+		prevShort: 'Previous short',
+		nextShort: 'Next short',
+		swipe: 'Swipe up for more',
+		copied: 'Link copied',
+		shareTitle: (title: string) => `“${title}” digital invitation · Invitard`,
+		results: (n: number) => (n === 1 ? '1 short' : `${n} shorts`),
+	},
+}[lang];
+
+const { shorts, id = 'shorts', kicker = copy.kicker, title, lead, searchable = false } = Astro.props;
 const titleId = `${id}-title`;
-const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
+const categories = getCategories(lang);
+const catOf = (s: Short) => categories.find((c) => c.slug === s.categorySlug)!;
+
+// Categorías presentes, en el orden del catálogo, para los filtros rápidos.
+const chipCats = categories.filter((c) => shorts.some((s) => s.categorySlug === c.slug));
+
+// Texto en el que busca el buscador (sin tildes, en minúsculas). Incluye ambos idiomas de la categoría
+// para que «boda» o «wedding» funcionen en cualquier versión.
+const fold = (t: string) => t.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+const allCats = { es: getCategories('es'), en: getCategories('en') };
+const haystack = (s: Short) => {
+	const names = [allCats.es, allCats.en].map((list) => list.find((c) => c.slug === s.categorySlug)!);
+	return fold(
+		[s.categorySlug, ...names.flatMap((c) => [c.name, c.eventLabel, ...c.keywords]), s.title, s.names, s.script, s.caption, ...s.tags].join(' '),
+	);
+};
 ---
 
-<section class="reels" {id} aria-labelledby={titleId} data-reels>
-	<div class="container reels-head">
+<section class="shorts" {id} aria-labelledby={titleId} data-shorts data-copied={copy.copied}>
+	<div class="container shorts-head">
 		<div>
 			<span class="kicker">{kicker}</span>
 			<h2 id={titleId}>{title}</h2>
 			{lead && <p>{lead}</p>}
 		</div>
-		<div class="reels-head-actions">
-			<button class="btn btn--sky reels-open-all" type="button" data-open="0">
+		<div class="shorts-head-actions">
+			<button class="btn btn--sky shorts-open-all" type="button" data-open-first>
 				<Icon name="play" />
-				Ver reels
+				{copy.watch}
 			</button>
-			<div class="shelf-nav" aria-hidden="true">
-				<button type="button" class="round-btn" data-shelf="-1" tabindex="-1"><Icon name="arrow" class="flip" /></button>
-				<button type="button" class="round-btn" data-shelf="1" tabindex="-1"><Icon name="arrow" /></button>
+			<div class="shelf-nav">
+				<button type="button" class="round-btn" data-shelf="-1" aria-label={copy.prev}><Icon name="arrow" class="flip" /></button>
+				<button type="button" class="round-btn" data-shelf="1" aria-label={copy.next}><Icon name="arrow" /></button>
 			</div>
 		</div>
 	</div>
 
-	<ul class="shelf" role="list">
+	{
+		searchable && (
+			<div class="container shorts-search">
+				<label class="search-box">
+					<Icon name="search" size="1.25rem" />
+					<span class="visually-hidden">{copy.searchLabel}</span>
+					<input type="search" data-search placeholder={copy.searchPlaceholder} autocomplete="off" enterkeyhint="search" />
+				</label>
+				<div class="chips-row" role="group" aria-label={copy.filters}>
+					<button type="button" class="chip" data-chip="" aria-pressed="true">
+						{copy.all}
+					</button>
+					{chipCats.map((c) => (
+						<button
+							type="button"
+							class="chip"
+							data-chip={c.slug}
+							data-names={[c.slug, ...[allCats.es, allCats.en].map((l) => l.find((x) => x.slug === c.slug)!.name)].map(fold).join('|')}
+							aria-pressed="false"
+						>
+							{c.name}
+						</button>
+					))}
+				</div>
+				<p class="visually-hidden" aria-live="polite" data-results data-one={copy.results(1)} data-many={copy.results(2)} />
+			</div>
+		)
+	}
+
+	<ul class="shelf" role="list" data-shelf-list>
 		{
-			reels.map((r, i) => {
-				const cat = catOf(r);
+			shorts.map((s) => {
+				const cat = catOf(s);
 				return (
-					<li class="reel-card">
-						<button class="reel-card-btn" type="button" data-open={i} aria-label={`Ver reel: modelo «${r.title}» de ${cat.name.toLowerCase()}`}>
-							<ReelMedia reel={r} widths={[240, 360, 480]} sizes="(width >= 46rem) 15rem, 44vw" />
-							<span class="reel-card-play" aria-hidden="true">
+					<li class="short-card" data-id={s.id} data-cat={s.categorySlug} data-text={haystack(s)}>
+						<button class="short-card-btn" type="button" data-open={s.id} aria-label={copy.cardLabel(s.title, cat.name)}>
+							<ShortMedia short={s} widths={[240, 360, 480]} sizes="(width >= 46rem) 15rem, 44vw" />
+							<span class="short-card-play" aria-hidden="true">
 								<Icon name="play" size="1.1rem" />
 							</span>
-							<span class="reel-card-meta" aria-hidden="true">
-								<span class="reel-card-cat">{cat.name}</span>
-								<span class="reel-card-title">{r.title}</span>
+							<span class="short-card-meta" aria-hidden="true">
+								<span class="short-card-cat">{cat.name}</span>
+								<span class="short-card-title">{s.title}</span>
 							</span>
 						</button>
 					</li>
@@ -63,33 +173,47 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 		}
 	</ul>
 
+	<div class="container shorts-empty" data-empty hidden>
+		<p>{copy.empty}</p>
+		<a class="btn btn--whatsapp" href={whatsappLink(copy.emptyMessage)} rel="noopener" target="_blank">
+			<Icon name="whatsapp" />
+			{copy.emptyCta}
+		</a>
+	</div>
+
 	<dialog class="viewer" aria-label={title}>
 		<div class="feed" data-feed>
 			{
-				reels.map((r, i) => {
-					const cat = catOf(r);
-					const message = `¡Hola Invitard! Vi el reel del modelo «${r.title}» (${cat.name}). ¿Me envían una demo? ✨`;
+				shorts.map((s, i) => {
+					const cat = catOf(s);
+					const message = copy.message(s.title, cat.name);
 					return (
-						<article class="slide" id={`reel-${r.id}`} data-index={i} data-title={r.title} aria-label={`Modelo «${r.title}», ${i + 1} de ${reels.length}`}>
+						<article
+							class="slide"
+							id={`short-${s.id}`}
+							data-id={s.id}
+							data-share-title={copy.shareTitle(s.title)}
+							aria-label={copy.slideLabel(s.title, i + 1, shorts.length)}
+						>
 							<div class="slide-frame" data-tap>
-								<ReelMedia reel={r} widths={[480, 720, 1080]} sizes="(min-aspect-ratio: 3/4) 56vh, 100vw" />
+								<ShortMedia short={s} widths={[480, 720, 1080]} sizes="(min-aspect-ratio: 3/4) 56vh, 100vw" />
 								<span class="slide-paused" aria-hidden="true">
 									<Icon name="play" size="2.2rem" />
 								</span>
 								<div class="slide-info">
-									<a class="slide-cat" href={url(categoryPath(cat))}>
+									<a class="slide-cat" href={url(categoryPath(cat, lang))}>
 										{cat.name}
 									</a>
-									<h3>Modelo «{r.title}»</h3>
-									<p>{r.caption}</p>
+									<h3>{copy.model(s.title)}</h3>
+									<p>{s.caption}</p>
 									<ul class="slide-tags" role="list">
-										{r.tags.map((t) => (
+										{s.tags.map((t) => (
 											<li>#{t.replace(/\s+(\S)/g, (_, ch: string) => ch.toUpperCase())}</li>
 										))}
 									</ul>
 									<a class="btn btn--whatsapp slide-cta" href={whatsappLink(message)} rel="noopener" target="_blank">
 										<Icon name="whatsapp" />
-										Quiero una así
+										{copy.want}
 									</a>
 								</div>
 							</div>
@@ -98,19 +222,19 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 									<span class="rail-icon">
 										<Icon name="heartFill" size="1.6rem" />
 									</span>
-									<span class="rail-label">Me gusta</span>
+									<span class="rail-label">{copy.like}</span>
 								</button>
 								<button type="button" class="rail-btn" data-share>
 									<span class="rail-icon">
 										<Icon name="share" size="1.5rem" />
 									</span>
-									<span class="rail-label">Compartir</span>
+									<span class="rail-label">{copy.share}</span>
 								</button>
 								<a class="rail-btn rail-btn--wa" href={whatsappLink(message)} rel="noopener" target="_blank">
 									<span class="rail-icon">
 										<Icon name="whatsapp" size="1.5rem" />
 									</span>
-									<span class="rail-label">Pedir demo</span>
+									<span class="rail-label">{copy.demo}</span>
 								</a>
 							</div>
 						</article>
@@ -123,28 +247,28 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 			<button type="button" class="round-btn round-btn--glass" data-mute hidden aria-pressed="false">
 				<span class="when-muted"><Icon name="muted" size="1.3rem" /></span>
 				<span class="when-sound"><Icon name="volume" size="1.3rem" /></span>
-				<span class="visually-hidden">Silenciar</span>
+				<span class="visually-hidden">{copy.mute}</span>
 			</button>
-			<span class="viewer-count" aria-live="polite"><span data-count>1</span> / {reels.length}</span>
+			<span class="viewer-count" aria-live="polite"><span data-count>1</span> / <span data-total>{shorts.length}</span></span>
 			<form method="dialog">
-				<button class="round-btn round-btn--glass" aria-label="Cerrar reels">
+				<button class="round-btn round-btn--glass" aria-label={copy.close}>
 					<Icon name="close" size="1.4rem" />
 				</button>
 			</form>
 		</div>
 
 		<div class="viewer-nav">
-			<button type="button" class="round-btn round-btn--glass" data-step="-1" aria-label="Reel anterior">
+			<button type="button" class="round-btn round-btn--glass" data-step="-1" aria-label={copy.prevShort}>
 				<Icon name="up" size="1.4rem" />
 			</button>
-			<button type="button" class="round-btn round-btn--glass" data-step="1" aria-label="Reel siguiente">
+			<button type="button" class="round-btn round-btn--glass" data-step="1" aria-label={copy.nextShort}>
 				<Icon name="down" size="1.4rem" />
 			</button>
 		</div>
 
 		<div class="swipe-hint" aria-hidden="true">
 			<Icon name="up" size="1.8rem" />
-			Desliza para ver más
+			{copy.swipe}
 		</div>
 		<div class="toast" role="status" aria-live="polite"></div>
 	</dialog>
@@ -152,7 +276,7 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 
 <style>
 	/* ───────── Sección ───────── */
-	.reels {
+	.shorts {
 		--glow-1: oklch(0.55 0.17 20 / 0.45);
 		--glow-2: oklch(0.55 0.14 235 / 0.5);
 		position: relative;
@@ -165,7 +289,7 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 			oklch(0.18 0.025 275);
 	}
 
-	.reels-head {
+	.shorts-head {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: end;
@@ -193,7 +317,7 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 		}
 	}
 
-	.reels-head-actions {
+	.shorts-head-actions {
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;
@@ -201,7 +325,7 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 		@media (width < 46rem) {
 			inline-size: 100%;
 
-			& .reels-open-all {
+			& .shorts-open-all {
 				flex: 1;
 			}
 		}
@@ -274,11 +398,11 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 		}
 	}
 
-	.reel-card {
+	.short-card {
 		scroll-snap-align: start;
 	}
 
-	.reel-card-btn {
+	.short-card-btn {
 		position: relative;
 		display: block;
 		inline-size: 100%;
@@ -318,7 +442,7 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 		}
 	}
 
-	.reel-card-play {
+	.short-card-play {
 		position: absolute;
 		inset-block-start: 1.1rem;
 		inset-inline-end: 0.7rem;
@@ -333,7 +457,7 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 		padding-inline-start: 2px;
 	}
 
-	.reel-card-meta {
+	.short-card-meta {
 		position: absolute;
 		inset: auto 0 0;
 		z-index: 2;
@@ -344,7 +468,7 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 		line-height: 1.2;
 	}
 
-	.reel-card-cat {
+	.short-card-cat {
 		inline-size: fit-content;
 		max-inline-size: 100%;
 		overflow: hidden;
@@ -358,7 +482,7 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 		font-weight: 600;
 	}
 
-	.reel-card-title {
+	.short-card-title {
 		font-weight: 700;
 		font-size: 0.95rem;
 	}
@@ -759,12 +883,131 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 			opacity: 1;
 		}
 	}
+
+	/* ───────── Buscador ───────── */
+	.shorts-search {
+		display: grid;
+		gap: 0.9rem;
+		margin-block-end: 1.25rem;
+	}
+
+	.search-box {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		max-inline-size: 34rem;
+		padding-inline: 1.1rem;
+		border-radius: 999px;
+		background: oklch(1 0 0 / 0.1);
+		border: 1px solid oklch(1 0 0 / 0.22);
+		color: oklch(0.85 0.02 260);
+		transition:
+			background-color 0.2s,
+			border-color 0.2s;
+
+		&:focus-within {
+			background: oklch(1 0 0 / 0.16);
+			border-color: var(--sky);
+		}
+
+		& input {
+			flex: 1;
+			min-inline-size: 0;
+			min-block-size: 3rem;
+			border: 0;
+			background: transparent;
+			color: white;
+			font: inherit;
+			outline: none;
+
+			&::placeholder {
+				color: oklch(0.8 0.02 260);
+			}
+		}
+	}
+
+	.chips-row {
+		display: flex;
+		gap: 0.5rem;
+		margin-inline: calc(-1 * var(--gutter));
+		padding: 0.15rem var(--gutter);
+		overflow-x: auto;
+		scrollbar-width: none;
+
+		&::-webkit-scrollbar {
+			display: none;
+		}
+	}
+
+	.chip {
+		flex-shrink: 0;
+		min-block-size: 2.5rem;
+		padding: 0.35rem 1rem;
+		border-radius: 999px;
+		border: 1px solid oklch(1 0 0 / 0.22);
+		background: transparent;
+		color: white;
+		font: inherit;
+		font-size: var(--step--1);
+		font-weight: 600;
+		cursor: pointer;
+		transition:
+			background-color 0.2s,
+			color 0.2s;
+
+		&:hover {
+			background: oklch(1 0 0 / 0.12);
+		}
+
+		&[aria-pressed='true'] {
+			background: var(--sky);
+			border-color: var(--sky);
+			color: var(--ink);
+		}
+	}
+
+	.shorts-empty {
+		display: grid;
+		justify-items: start;
+		gap: 0.5rem;
+		padding-block: 1rem 1.5rem;
+
+		&[hidden] {
+			display: none;
+		}
+
+		& p {
+			margin: 0;
+			font-size: var(--step-1);
+			color: oklch(0.88 0.02 260);
+		}
+	}
+
+	:global(.is-empty) > .shelf {
+		display: none;
+	}
+
+	/* Carrusel infinito: sin imán para que el avance automático sea suave */
+	.shelf:global(.is-looping) {
+		scroll-snap-type: none;
+	}
+
+	.short-card[hidden] {
+		display: none;
+	}
+
+	.slide[hidden] {
+		display: none;
+	}
 </style>
 
 <script>
-	const LIKES_KEY = 'invitard:reels-liked';
+	const LIKES_KEY = 'invitard:shorts-liked';
+	const SPEED = 32; // px por segundo del carrusel automático
 	const canHover = matchMedia('(hover: hover)').matches;
 	const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+	const fold = (t: string) => t.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim();
 
 	function loadLikes(): Set<string> {
 		try {
@@ -803,29 +1046,48 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 		scope.querySelector<HTMLVideoElement>('.reel-video')?.pause();
 	}
 
-	for (const video of document.querySelectorAll<HTMLVideoElement>('[data-reels] .reel-video')) {
-		video.addEventListener('playing', () => video.classList.add('is-playing'));
-	}
+	document.addEventListener(
+		'playing',
+		(e) => {
+			const v = e.target as HTMLElement;
+			if (v.classList?.contains('reel-video')) v.classList.add('is-playing');
+		},
+		true,
+	);
 
 	const likes = loadLikes();
 
-	for (const root of document.querySelectorAll<HTMLElement>('[data-reels]')) {
-		const shelf = root.querySelector<HTMLElement>('.shelf')!;
-		const cards = [...root.querySelectorAll<HTMLElement>('.reel-card-btn')];
+	for (const root of document.querySelectorAll<HTMLElement>('[data-shorts]')) {
+		const shelf = root.querySelector<HTMLElement>('[data-shelf-list]')!;
+		const originals = [...shelf.querySelectorAll<HTMLElement>('.short-card')];
 		const viewer = root.querySelector<HTMLDialogElement>('.viewer')!;
 		const feed = viewer.querySelector<HTMLElement>('[data-feed]')!;
-		const slides = [...viewer.querySelectorAll<HTMLElement>('.slide')];
+		const allSlides = [...viewer.querySelectorAll<HTMLElement>('.slide')];
 		const muteBtn = viewer.querySelector<HTMLButtonElement>('[data-mute]')!;
 		const countEl = viewer.querySelector<HTMLElement>('[data-count]')!;
+		const totalEl = viewer.querySelector<HTMLElement>('[data-total]')!;
 		const stepBtns = [...viewer.querySelectorAll<HTMLButtonElement>('[data-step]')];
 		const toast = viewer.querySelector<HTMLElement>('.toast')!;
+		const search = root.querySelector<HTMLInputElement>('[data-search]');
+		const chips = [...root.querySelectorAll<HTMLButtonElement>('[data-chip]')];
+		const results = root.querySelector<HTMLElement>('[data-results]');
+		const empty = root.querySelector<HTMLElement>('[data-empty]')!;
+
+		let slides = allSlides; // los que coinciden con el filtro
 		let active = -1;
 		let muted = false;
-		/** Cómo se registró el visor en el historial: 'push' (al tocar) o 'replace' (enlace compartido). */
 		let historyMode: 'push' | 'replace' | null = null;
 
-		/* ── Fila: anima las tarjetas visibles ── */
-		const shelfObserver = new IntersectionObserver(
+		/* ───────── Carrusel infinito ───────── */
+		let looping = false;
+		let loopWidth = 0;
+		let pos = 0;
+		let last = 0;
+		let holdUntil = 0; // pausa temporal tras una interacción
+		let hovering = false;
+		let inView = false;
+
+		const cardObserver = new IntersectionObserver(
 			(entries) => {
 				for (const e of entries) {
 					const card = e.target as HTMLElement;
@@ -837,22 +1099,165 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 			},
 			{ threshold: 0.6 },
 		);
-		cards.forEach((c) => shelfObserver.observe(c));
+
+		const visibleCards = () => originals.filter((c) => !c.hidden);
+
+		/** Rehace los clones con las tarjetas visibles para que la fila no tenga fin. */
+		function buildLoop() {
+			shelf.querySelectorAll('.is-clone').forEach((c) => {
+				cardObserver.unobserve(c.querySelector('button')!);
+				c.remove();
+			});
+			const visible = visibleCards();
+			shelf.scrollLeft = 0;
+			pos = 0;
+			looping = false;
+			shelf.classList.remove('is-looping');
+			if (visible.length === 0) return;
+
+			// Solo hay bucle si las tarjetas ocupan más que el ancho visible.
+			const lastCard = visible[visible.length - 1];
+			const contentWidth = lastCard.offsetLeft + lastCard.offsetWidth - visible[0].offsetLeft;
+			if (contentWidth <= shelf.clientWidth) return;
+
+			for (const card of visible) {
+				const clone = card.cloneNode(true) as HTMLElement;
+				clone.classList.add('is-clone');
+				clone.setAttribute('aria-hidden', 'true');
+				clone.inert = true;
+				clone.querySelector('.reel-video')?.removeAttribute('src');
+				shelf.append(clone);
+				cardObserver.observe(clone.querySelector('button')!);
+			}
+			const firstClone = shelf.querySelector<HTMLElement>('.is-clone')!;
+			loopWidth = firstClone.offsetLeft - visible[0].offsetLeft;
+			looping = true;
+			shelf.classList.add('is-looping');
+		}
+
+		function wrap() {
+			if (!looping) return;
+			if (pos >= loopWidth) pos -= loopWidth;
+			else if (pos < 1) pos += loopWidth;
+		}
+
+		function tick(now: number) {
+			const dt = Math.min(0.05, (now - last) / 1000 || 0);
+			last = now;
+			const running = looping && !reduceMotion && inView && !hovering && !viewer.open && now > holdUntil && !document.hidden;
+			if (running) {
+				pos += SPEED * dt;
+				wrap();
+				shelf.scrollLeft = pos;
+			}
+			requestAnimationFrame(tick);
+		}
+
+		const hold = (ms = 3000) => (holdUntil = performance.now() + ms);
+
+		shelf.addEventListener(
+			'scroll',
+			() => {
+				// Si la persona desplaza a mano, seguimos desde donde dejó la fila.
+				if (Math.abs(shelf.scrollLeft - pos) > 2) {
+					pos = shelf.scrollLeft;
+					if (looping && (pos >= loopWidth || pos < 1)) {
+						wrap();
+						shelf.scrollLeft = pos;
+					}
+				}
+			},
+			{ passive: true },
+		);
+
+		shelf.addEventListener('pointerenter', (e) => {
+			if (e.pointerType === 'mouse') hovering = true;
+		});
+		shelf.addEventListener('pointerleave', () => (hovering = false));
+		shelf.addEventListener('pointerdown', () => hold(4000), { passive: true });
+		shelf.addEventListener('touchstart', () => hold(4000), { passive: true });
+		shelf.addEventListener('wheel', () => hold(3000), { passive: true });
+		shelf.addEventListener('focusin', () => hold(6000));
+
+		new IntersectionObserver(([e]) => (inView = e.isIntersecting), { threshold: 0.2 }).observe(shelf);
+
+		for (const card of originals) cardObserver.observe(card.querySelector('button')!);
 
 		if (canHover && !reduceMotion) {
-			for (const card of cards) {
-				card.addEventListener('pointerenter', () => playVideo(card));
-				card.addEventListener('pointerleave', () => pauseVideo(card));
-			}
+			shelf.addEventListener('pointerover', (e) => {
+				const btn = (e.target as Element).closest<HTMLElement>('.short-card-btn');
+				if (btn) playVideo(btn);
+			});
+			shelf.addEventListener('pointerout', (e) => {
+				const btn = (e.target as Element).closest<HTMLElement>('.short-card-btn');
+				if (btn && !btn.contains(e.relatedTarget as Node)) pauseVideo(btn);
+			});
 		}
 
 		for (const btn of root.querySelectorAll<HTMLButtonElement>('[data-shelf]')) {
 			btn.addEventListener('click', () => {
-				shelf.scrollBy({ left: Number(btn.dataset.shelf) * shelf.clientWidth * 0.8, behavior: 'smooth' });
+				hold(3500);
+				const card = visibleCards()[0];
+				const step = (card?.offsetWidth ?? 200) + 16;
+				shelf.scrollBy({ left: Number(btn.dataset.shelf) * step * 2, behavior: reduceMotion ? 'instant' : 'smooth' });
 			});
 		}
 
-		/* ── Visor ── */
+		let resizeTimer = 0;
+		new ResizeObserver(() => {
+			clearTimeout(resizeTimer);
+			resizeTimer = window.setTimeout(buildLoop, 150);
+		}).observe(shelf);
+
+		requestAnimationFrame((t) => {
+			last = t;
+			buildLoop();
+			requestAnimationFrame(tick);
+		});
+
+		/* ───────── Buscador y filtros ───────── */
+		let chipFilter = '';
+
+		function applyFilter() {
+			const query = fold(search?.value ?? '');
+			// Si lo escrito es el nombre exacto de una categoría («cumpleaños», «wedding»…), mostramos solo esa.
+			const exact = query && chips.find((c) => c.dataset.names?.split('|').some((n) => n === query || n.replace(/s$/, '') === query));
+			if (search) chips.forEach((c) => c.setAttribute('aria-pressed', String(exact ? c === exact : query ? false : c.dataset.chip === chipFilter)));
+			const words = exact ? [] : query.split(/\s+/).filter(Boolean);
+			const catFilter = exact ? exact.dataset.chip! : chipFilter;
+			let count = 0;
+			for (const card of originals) {
+				const text = card.dataset.text ?? '';
+				const match = (!catFilter || card.dataset.cat === catFilter) && words.every((w) => text.includes(w));
+				card.hidden = !match;
+				if (match) count++;
+			}
+			const visibleIds = new Set(visibleCards().map((c) => c.dataset.id));
+			for (const s of allSlides) s.hidden = !visibleIds.has(s.dataset.id);
+			slides = allSlides.filter((s) => !s.hidden);
+			totalEl.textContent = String(slides.length);
+			empty.hidden = count > 0;
+			root.classList.toggle('is-empty', count === 0);
+			if (results) results.textContent = count === 1 ? results.dataset.one! : results.dataset.many!.replace(/\d+/, String(count));
+			buildLoop();
+		}
+
+		search?.addEventListener('input', () => {
+			hold(2000);
+			chipFilter = '';
+			applyFilter();
+		});
+
+		for (const chip of chips) {
+			chip.addEventListener('click', () => {
+				chipFilter = chip.dataset.chip ?? '';
+				chips.forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+				if (search) search.value = '';
+				applyFilter();
+			});
+		}
+
+		/* ───────── Visor a pantalla completa ───────── */
 		function showToast(text: string) {
 			toast.textContent = text;
 			toast.classList.add('is-visible');
@@ -860,7 +1265,7 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 		}
 
 		function setActive(index: number) {
-			if (index === active) return;
+			if (index === active || index < 0) return;
 			active = index;
 			slides.forEach((s, i) => {
 				const on = i === index;
@@ -868,7 +1273,7 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 				s.querySelector('[data-tap]')!.classList.remove('is-paused');
 				if (!on) pauseVideo(s);
 			});
-			// Carga ya la imagen del reel actual y de sus vecinos.
+			// Carga ya la imagen del short actual y de sus vecinos.
 			for (const s of slides.slice(Math.max(0, index - 1), index + 3)) {
 				s.querySelectorAll('img[loading="lazy"]').forEach((img) => img.setAttribute('loading', 'eager'));
 			}
@@ -884,14 +1289,16 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 		const feedObserver = new IntersectionObserver(
 			(entries) => {
 				for (const e of entries) {
-					if (e.isIntersecting) setActive(Number((e.target as HTMLElement).dataset.index));
+					if (e.isIntersecting) setActive(slides.indexOf(e.target as HTMLElement));
 				}
 			},
 			{ root: feed, threshold: 0.6 },
 		);
-		slides.forEach((s) => feedObserver.observe(s));
+		allSlides.forEach((s) => feedObserver.observe(s));
 
-		function open(index: number, { fromHash = false } = {}) {
+		function open(id: string | undefined, { fromHash = false } = {}) {
+			const index = Math.max(0, slides.findIndex((s) => s.dataset.id === id));
+			if (!slides.length) return;
 			active = -1;
 			viewer.showModal();
 			feed.scrollTo({ top: slides[index].offsetTop, behavior: 'instant' });
@@ -900,21 +1307,24 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 			if (fromHash) {
 				historyMode = 'replace';
 			} else {
-				history.pushState({ reels: true }, '', `#${slides[index].id}`);
+				history.pushState({ shorts: true }, '', `#${slides[index].id}`);
 				historyMode = 'push';
 			}
 		}
 
-		root.querySelectorAll<HTMLButtonElement>('[data-open]').forEach((btn) => {
-			btn.addEventListener('click', () => open(Number(btn.dataset.open)));
+		shelf.addEventListener('click', (e) => {
+			const btn = (e.target as Element).closest<HTMLElement>('[data-open]');
+			if (btn) open(btn.dataset.open);
 		});
+		root.querySelector('[data-open-first]')?.addEventListener('click', () => open(slides[0]?.dataset.id));
 
 		viewer.addEventListener('close', () => {
-			slides.forEach((s) => {
+			allSlides.forEach((s) => {
 				pauseVideo(s);
 				s.classList.remove('is-live');
 			});
 			active = -1;
+			hold(1500);
 			const mode = historyMode;
 			historyMode = null;
 			if (mode === 'push') history.back();
@@ -959,26 +1369,25 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 
 		/* Me gusta (guardado en el navegador) */
 		function setLiked(slide: HTMLElement, liked: boolean) {
-			const id = slide.id;
+			const id = slide.dataset.id!;
 			if (liked) likes.add(id);
 			else likes.delete(id);
 			saveLikes(likes);
 			slide.querySelector('[data-like]')!.setAttribute('aria-pressed', String(liked));
 		}
 
-		for (const slide of slides) {
+		for (const slide of allSlides) {
 			const likeBtn = slide.querySelector<HTMLButtonElement>('[data-like]')!;
-			likeBtn.setAttribute('aria-pressed', String(likes.has(slide.id)));
+			likeBtn.setAttribute('aria-pressed', String(likes.has(slide.dataset.id!)));
 			likeBtn.addEventListener('click', () => setLiked(slide, likeBtn.getAttribute('aria-pressed') !== 'true'));
 
 			slide.querySelector('[data-share]')!.addEventListener('click', async () => {
 				const shareUrl = `${location.origin}${location.pathname}#${slide.id}`;
-				const title = `Invitación digital «${slide.dataset.title}» · Invitard`;
 				try {
-					if (navigator.share) await navigator.share({ title, url: shareUrl });
+					if (navigator.share) await navigator.share({ title: slide.dataset.shareTitle, url: shareUrl });
 					else {
 						await navigator.clipboard.writeText(shareUrl);
-						showToast('Enlace copiado');
+						showToast(root.dataset.copied!);
 					}
 				} catch {
 					/* compartir cancelado */
@@ -1017,16 +1426,15 @@ const catOf = (r: Reel) => categories.find((c) => c.slug === r.categorySlug)!;
 			// Progreso del video real
 			const video = slide.querySelector<HTMLVideoElement>('.reel-video');
 			video?.addEventListener('timeupdate', () => {
-				const bar = slide.querySelector<HTMLElement>('.reel-progress');
-				bar?.style.setProperty('--progress', String(video.currentTime / (video.duration || 1)));
+				slide.querySelector<HTMLElement>('.reel-progress')?.style.setProperty('--progress', String(video.currentTime / (video.duration || 1)));
 			});
 		}
 
-		// Enlace compartido: abre el visor directamente en ese reel.
-		const fromHash = slides.findIndex((s) => `#${s.id}` === location.hash);
-		if (fromHash >= 0) {
+		// Enlace compartido: abre el visor directamente en ese short.
+		const fromHash = allSlides.find((s) => `#${s.id}` === location.hash);
+		if (fromHash) {
 			root.scrollIntoView({ behavior: 'instant' });
-			open(fromHash, { fromHash: true });
+			open(fromHash.dataset.id, { fromHash: true });
 		}
 	}
 </script>

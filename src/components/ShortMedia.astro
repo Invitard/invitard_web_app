@@ -1,21 +1,26 @@
 ---
 /**
- * Contenido visual de un reel: el video (si existe) o una vista animada de la
+ * Contenido visual de un short: el video (si existe) o una vista animada de la
  * invitación construida con la foto y los textos del modelo.
  * Las animaciones sólo corren cuando un ancestro tiene la clase `is-live`.
  */
 import { Picture } from 'astro:assets';
-import type { Reel } from '../data/reels';
+import type { Short } from '../data/shorts';
+import { getLang } from '../i18n';
 import { url } from '../data/site';
 
 interface Props {
-	reel: Reel;
+	short: Short;
 	widths: number[];
 	sizes: string;
 }
 
-const { reel, widths, sizes } = Astro.props;
-const videoSrc = reel.video ? url(`/reels/${reel.video}`) : undefined;
+const { short: reel, widths, sizes } = Astro.props;
+const videoSrc = reel.video ? url(`/shorts/${reel.video}`) : undefined;
+const t =
+	getLang(Astro.url) === 'en'
+		? { days: 'days', rsvp: 'RSVP now' }
+		: { days: 'días', rsvp: 'Confirmar asistencia' };
 ---
 
 <div class="reel-media" data-has-video={videoSrc ? '' : undefined}>
@@ -41,9 +46,9 @@ const videoSrc = reel.video ? url(`/reels/${reel.video}`) : undefined;
 				<span class="ri-names">{reel.names}</span>
 				<span class="ri-date">{reel.date}</span>
 				<span class="ri-count">
-					<b>24</b>días <b>08</b>h <b>31</b>min
+					<b>24</b>{t.days} <b>08</b>h <b>31</b>min
 				</span>
-				<span class="ri-btn">Confirmar asistencia</span>
+				<span class="ri-btn">{t.rsvp}</span>
 			</div>
 		)
 	}

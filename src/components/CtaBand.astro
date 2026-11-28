@@ -1,6 +1,7 @@
 ---
 import Icon from './Icon.astro';
 import { whatsappLink } from '../data/site';
+import { getLang } from '../i18n';
 
 interface Props {
 	title?: string;
@@ -8,11 +9,22 @@ interface Props {
 	message?: string;
 }
 
-const {
-	title = '¿Listo para sorprender a tus invitados?',
-	text = 'Cuéntanos tu idea por WhatsApp y te enviamos una propuesta sin compromiso. La cotización es gratis.',
-	message = '¡Hola Invitard! Quiero cotizar una invitación digital ✨',
-} = Astro.props;
+const lang = getLang(Astro.url);
+const copy = {
+	es: {
+		title: '¿Listo para sorprender a tus invitados?',
+		text: 'Cuéntanos tu idea por WhatsApp y te enviamos una propuesta sin compromiso. La cotización es gratis.',
+		message: '¡Hola Invitard! Quiero cotizar una invitación digital ✨',
+		button: 'Cotizar gratis por WhatsApp',
+	},
+	en: {
+		title: 'Ready to wow your guests?',
+		text: 'Tell us your idea on WhatsApp and we’ll send you a no-obligation proposal. Quotes are free.',
+		message: 'Hi Invitard! I’d like a quote for a digital invitation ✨',
+		button: 'Get a free quote on WhatsApp',
+	},
+}[lang];
+const { title = copy.title, text = copy.text, message = copy.message } = Astro.props;
 ---
 
 <section class="cta" aria-labelledby="cta-title">
@@ -22,7 +34,7 @@ const {
 		<p>{text}</p>
 		<a class="btn btn--whatsapp" href={whatsappLink(message)} rel="noopener" target="_blank">
 			<Icon name="whatsapp" />
-			Cotizar gratis por WhatsApp
+			{copy.button}
 		</a>
 	</div>
 </section>

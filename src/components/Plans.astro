@@ -1,33 +1,90 @@
 ---
 import Icon from './Icon.astro';
-import { plans, extras } from '../data/content';
+import { getPlans, getExtras, formatUsd } from '../data/content';
 import { whatsappLink } from '../data/site';
+import { getLang } from '../i18n';
 
 interface Props {
 	/** Texto del evento para personalizar el mensaje de WhatsApp. */
 	eventLabel?: string;
 }
 
-const { eventLabel = 'mi evento' } = Astro.props;
+const lang = getLang(Astro.url);
+const plans = getPlans(lang);
+const extras = getExtras(lang);
+const copy = {
+	es: {
+		event: 'mi evento',
+		hint: 'Desliza para ver más planes',
+		region: 'Planes y precios',
+		featured: 'Más elegido',
+		notIncluded: 'No incluye: ',
+		meta: (r: number, d: string) => `${r} rondas de cambios · Entrega en ${d}`,
+		want: (n: string) => `Quiero el plan ${n}`,
+		message: (n: string, e: string) => `¡Hola Invitard! Me interesa el plan ${n} para ${e}.`,
+		dot: (n: string) => `Ver plan ${n}`,
+		extras: 'Complementos',
+		currency: 'Moneda',
+		pen: 'Soles',
+		usd: 'Dólares',
+		notePen: 'Precios en soles para clientes en Perú. Pago del 100 % antes de empezar.',
+		noteUsd: 'Precios en dólares (USD) para clientes fuera del Perú. Pago del 100 % antes de empezar.',
+	},
+	en: {
+		event: 'my event',
+		hint: 'Swipe to see more plans',
+		region: 'Plans and pricing',
+		featured: 'Most popular',
+		notIncluded: 'Not included: ',
+		meta: (r: number, d: string) => `${r} rounds of changes · Delivery in ${d}`,
+		want: (n: string) => `I want the ${n} plan`,
+		message: (n: string, e: string) => `Hi Invitard! I’m interested in the ${n} plan for ${e}.`,
+		dot: (n: string) => `See ${n} plan`,
+		extras: 'Add-ons',
+		currency: 'Currency',
+		pen: 'Soles',
+		usd: 'US dollars',
+		notePen: 'Prices in Peruvian soles for clients in Peru. 100% payment before we start.',
+		noteUsd: 'Prices in US dollars (USD) for clients outside Peru. 100% payment before we start.',
+	},
+}[lang];
+
+const { eventLabel = copy.event } = Astro.props;
 ---
+
+<div class="currency-bar">
+	<p class="currency-note">
+		<span class="in-pen">{copy.notePen}</span>
+		<span class="in-usd">{copy.noteUsd}</span>
+	</p>
+	<div class="currency-toggle" role="group" aria-label={copy.currency}>
+		<button type="button" data-set-currency="pen"><span aria-hidden="true">S/</span> {copy.pen}</button>
+		<button type="button" data-set-currency="usd"><span aria-hidden="true">US$</span> {copy.usd}</button>
+	</div>
+</div>
 
 <div class="plans-wrap">
 <p class="plans-hint" aria-hidden="true">
-	Desliza para ver más planes
+	{copy.hint}
 	<Icon name="arrow" size="1.1rem" />
 </p>
 
-<div class="plans" role="region" aria-label="Planes y precios">
+<div class="plans" role="region" aria-label={copy.region}>
 	{
 		plans.map((p) => (
 			<article class:list={['plan', 'reveal', { 'plan--featured': p.featured }]} aria-labelledby={`plan-${p.id}`}>
-				{p.featured && <p class="plan-badge">Más elegido</p>}
+				{p.featured && <p class="plan-badge">{copy.featured}</p>}
 				<h3 id={`plan-${p.id}`}>{p.name}</h3>
 				<p class="plan-tagline">{p.tagline}</p>
-				<p class="plan-price">
+				<p class="plan-price in-pen">
 					<span class="plan-currency">S/</span>
 					<span class="plan-amount">{p.price}</span>
 					<span class="visually-hidden">soles</span>
+				</p>
+				<p class="plan-price in-usd">
+					<span class="plan-currency">US$</span>
+					<span class="plan-amount">{formatUsd(p.priceUsd)}</span>
+					<span class="visually-hidden">{lang === 'en' ? 'US dollars' : 'dólares'}</span>
 				</p>
 				<ul class="plan-list" role="list">
 					{p.includes.map((item) => (
@@ -40,23 +97,21 @@ const { eventLabel = 'mi evento' } = Astro.props;
 						<li class="plan-no">
 							<Icon name="minus" size="1.15rem" />
 							<span>
-								<span class="visually-hidden">No incluye: </span>
+								<span class="visually-hidden">{copy.notIncluded}</span>
 								{item}
 							</span>
 						</li>
 					))}
 				</ul>
-				<p class="plan-meta">
-					{p.revisions} rondas de cambios · Entrega en {p.delivery}
-				</p>
+				<p class="plan-meta">{copy.meta(p.revisions, p.delivery)}</p>
 				<a
 					class:list={['btn', p.featured ? 'btn--whatsapp' : 'btn--ghost']}
-					href={whatsappLink(`¡Hola Invitard! Me interesa el plan ${p.name} (S/ ${p.price}) para ${eventLabel}.`)}
+					href={whatsappLink(copy.message(p.name, eventLabel))}
 					rel="noopener"
 					target="_blank"
 				>
 					<Icon name="whatsapp" />
-					Quiero el plan {p.name}
+					{copy.want(p.name)}
 				</a>
 			</article>
 		))
@@ -67,7 +122,7 @@ const { eventLabel = 'mi evento' } = Astro.props;
 <div class="plans-dots">
 	{
 		plans.map((p, i) => (
-			<button type="button" aria-label={`Ver plan ${p.name}`} aria-current={i === 0 ? 'true' : 'false'}>
+			<button type="button" aria-label={copy.dot(p.name)} aria-current={i === 0 ? 'true' : 'false'}>
 				<span></span>
 			</button>
 		))
@@ -75,15 +130,19 @@ const { eventLabel = 'mi evento' } = Astro.props;
 </div>
 </div>
 
-<div class="extras">
-	<h3>Complementos</h3>
+<!-- «Complementos» oculto por ahora: quita `hidden` para volver a mostrarlo. -->
+<div class="extras" hidden>
+	<h3>{copy.extras}</h3>
 	<ul role="list">
 		{
 			extras.map((e) => (
 				<li>
 					<strong>{e.name}</strong>
 					<span>{e.text}</span>
-					<span class="extra-price">S/ {e.price}</span>
+					<span class="extra-price">
+						<span class="in-pen">S/ {e.price}</span>
+						<span class="in-usd">US$ {formatUsd(e.priceUsd)}</span>
+					</span>
 				</li>
 			))
 		}
@@ -91,6 +150,27 @@ const { eventLabel = 'mi evento' } = Astro.props;
 </div>
 
 <script>
+	// Selector manual de moneda (se recuerda en el navegador).
+	const syncCurrency = () => {
+		const current = document.documentElement.dataset.currency;
+		document.querySelectorAll<HTMLButtonElement>('[data-set-currency]').forEach((b) => {
+			b.setAttribute('aria-pressed', String(b.dataset.setCurrency === current));
+		});
+	};
+	document.querySelectorAll<HTMLButtonElement>('[data-set-currency]').forEach((b) =>
+		b.addEventListener('click', () => {
+			const value = b.dataset.setCurrency!;
+			document.documentElement.dataset.currency = value;
+			try {
+				localStorage.setItem('invitard:currency', value);
+			} catch {
+				/* almacenamiento no disponible */
+			}
+			syncCurrency();
+		}),
+	);
+	syncCurrency();
+
 	// Carrusel de planes en celular: puntos indicadores, oculta la pista al
 	// desplazarse y hace el carrusel enfocable con teclado solo si desborda.
 	for (const wrap of document.querySelectorAll<HTMLElement>('.plans-wrap')) {
@@ -125,6 +205,52 @@ const { eventLabel = 'mi evento' } = Astro.props;
 </script>
 
 <style>
+	.currency-bar {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem 1.25rem;
+		margin-block-end: 2rem;
+		text-align: center;
+	}
+
+	.currency-note {
+		margin: 0;
+		font-size: var(--step--1);
+		color: var(--ink-soft);
+	}
+
+	.currency-toggle {
+		display: inline-flex;
+		padding: 0.25rem;
+		border-radius: 999px;
+		background: var(--paper);
+		border: 1px solid var(--line);
+
+		& button {
+			min-block-size: 2.5rem;
+			padding: 0.3rem 0.9rem;
+			border: 0;
+			border-radius: 999px;
+			background: transparent;
+			color: var(--ink-soft);
+			font: inherit;
+			font-size: var(--step--1);
+			font-weight: 600;
+			cursor: pointer;
+
+			& span {
+				font-weight: 800;
+			}
+
+			&[aria-pressed='true'] {
+				background: var(--ink);
+				color: white;
+			}
+		}
+	}
+
 	.plans {
 		display: grid;
 		grid-template-columns: 1fr;

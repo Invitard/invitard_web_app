@@ -1,5 +1,6 @@
 import type { ImageMetadata } from 'astro';
 import { categories } from './categories';
+import type { Lang } from '../i18n';
 
 import bodaPareja from '../assets/stock/boda-pareja.jpg';
 import bodaAnillos from '../assets/stock/boda-anillos.jpg';
@@ -22,20 +23,20 @@ import conferencia from '../assets/stock/evento-empresarial-conferencia.jpg';
 import brindis from '../assets/stock/celebracion-brindis.jpg';
 
 /**
- * Reels (videos verticales 9:16) de invitaciones reales.
+ * Shorts (videos verticales 9:16) de invitaciones reales. Son el catálogo de modelos.
  *
  * Para publicar un video: graba la invitación en el celular (vertical, 9:16,
- * idealmente 720×1280, MP4 H.264, menos de 4 MB), guárdalo en `public/reels/`
+ * idealmente 720×1280, MP4 H.264, menos de 4 MB), guárdalo en `public/shorts/`
  * y escribe su nombre en `video`. Mientras no haya video se muestra una vista
  * animada de la invitación a partir de `poster`.
  */
-export interface Reel {
+export interface Short {
 	id: string;
 	categorySlug: string;
 	/** Nombre del modelo. */
 	title: string;
 	caption: string;
-	/** Archivo dentro de public/reels/ (opcional). */
+	/** Archivo dentro de public/shorts/ (opcional). */
 	video?: string;
 	poster: ImageMetadata;
 	posterAlt: string;
@@ -46,7 +47,7 @@ export interface Reel {
 	tags: string[];
 }
 
-export const reels: Reel[] = [
+export const shorts: Short[] = [
 	{
 		id: 'boda-sobre-real',
 		categorySlug: 'bodas',
@@ -259,7 +260,7 @@ export const reels: Reel[] = [
 		poster: conferencia,
 		posterAlt: 'Asistentes sentados en una conferencia empresarial',
 		script: 'Te invitamos al',
-		names: 'Summit Cusco',
+		names: 'Summit 2026',
 		date: 'Jueves 15 · Octubre',
 		tags: ['Agenda', 'Marca propia'],
 	},
@@ -277,28 +278,178 @@ export const reels: Reel[] = [
 	},
 ];
 
-/** Reels para la portada: uno por categoría primero, luego el resto. */
-export function featuredReels(): Reel[] {
+type ShortText = Pick<Short, 'caption' | 'posterAlt' | 'script' | 'date' | 'tags'> & { names?: string };
+
+const shortsEn: Record<string, ShortText> = {
+	'boda-sobre-real': {
+		caption: 'The envelope opens, your song plays and the countdown appears. This is how guests receive it on WhatsApp.',
+		posterAlt: 'Bride and groom walking hand in hand in a garden',
+		script: 'We’re getting married',
+		date: 'Saturday · December 12',
+		tags: ['Animated envelope', 'Music', 'RSVP'],
+	},
+	'boda-eterno': {
+		caption: 'Minimal and elegant: rings, sponsors, two locations and a gift registry.',
+		posterAlt: 'Bride and groom’s hands with wedding rings over a bouquet',
+		script: 'Forever',
+		date: 'Friday · March 20',
+		tags: ['Sponsors', 'Map', 'Gifts'],
+	},
+	'quince-jardin': {
+		caption: 'Flowers that animate as you scroll, the night’s itinerary and dress code.',
+		posterAlt: 'Banquet table with floral arrangements and glasses',
+		script: 'My quinceañera',
+		date: 'Saturday · February 7',
+		tags: ['Itinerary', 'Dress code'],
+	},
+	'quince-gala': {
+		caption: 'Dark background, golden sparkle and a grand entrance waltz with her favorite song.',
+		posterAlt: 'Party hall with chandeliers and round tables',
+		script: 'Join me at',
+		date: 'Saturday · April 18',
+		tags: ['Glam', 'Gallery'],
+	},
+	'cumple-disco': {
+		caption: 'Two birthday stars, an animated disco ball and balloons with their ages.',
+		posterAlt: 'Shiny disco balls on a dark background',
+		script: 'Let’s dance!',
+		date: 'Saturday · May 3',
+		tags: ['Disco', 'Countdown'],
+	},
+	'cumple-bosque': {
+		caption: 'An illustrated storybook for little ones, with a calendar and one-tap RSVP.',
+		posterAlt: 'Birthday cake covered in colorful sprinkles',
+		script: 'My first birthday',
+		date: 'Sunday · June 14',
+		tags: ['Kids', 'Music'],
+	},
+	'cumple-globos': {
+		caption: 'Bright colors, animated confetti and a location button straight to Google Maps.',
+		posterAlt: 'Colorful balloons floating at a party',
+		script: 'Turning 30',
+		date: 'Friday · October 9',
+		tags: ['Confetti', 'Map'],
+	},
+	'baby-nubes': {
+		caption: 'Soft blues, a gift registry and a game to guess the baby’s name.',
+		posterAlt: 'Baby feet wrapped in a white blanket',
+		script: 'Baby shower',
+		names: 'Baby Rojas',
+		date: 'Sunday · March 22',
+		tags: ['Gift registry', 'Games'],
+	},
+	'mascota-huellitas': {
+		caption: 'Animated bones, a photo gallery and a special menu for four-legged guests.',
+		posterAlt: 'Smiling beagle puppy looking at the camera',
+		script: 'Woof, I’m turning 3!',
+		date: 'Saturday · May 16',
+		tags: ['Gallery', 'Fun'],
+	},
+	'mascota-gatuno': {
+		caption: 'Elegant and sweet, with animated whiskers and RSVP via WhatsApp.',
+		posterAlt: 'Black and white cat with green eyes peeking over a bamboo edge',
+		script: 'Purr-thday party',
+		date: 'Sunday · June 7',
+		tags: ['Sweet', 'RSVP'],
+	},
+	'bautizo-blanco-oro': {
+		caption: 'Animated doves, church details, godparents and reception.',
+		posterAlt: 'Baby sleeping on a white blanket',
+		script: 'My baptism',
+		date: 'Sunday · April 19',
+		tags: ['Godparents', 'Church'],
+	},
+	'comunion-luz': {
+		caption: 'Classic gold symbols, mass time and the location of the celebration.',
+		posterAlt: 'Church interior with wooden pews',
+		script: 'My first communion',
+		date: 'Saturday · May 30',
+		tags: ['Mass', 'Reception'],
+	},
+	'confirmacion-paloma': {
+		caption: 'Whites and sky blues with rays of light, sponsors and a message from the confirmand.',
+		posterAlt: 'White arches inside a cathedral',
+		script: 'My confirmation',
+		date: 'Sunday · November 8',
+		tags: ['Sponsors', 'Message'],
+	},
+	'festividad-capilla': {
+		caption: 'Novena, procession and main mass with a day-by-day program.',
+		posterAlt: 'Light blue wooden chapel surrounded by mountains',
+		script: 'Feast of',
+		names: 'Our Lady of Mount Carmel',
+		date: 'July 15–18',
+		tags: ['Program', 'Procession'],
+	},
+	'patronal-danzas': {
+		caption: 'Hosts, sponsors, bands and the location of each day in a single link.',
+		posterAlt: 'Dance floor full of people dancing at a party',
+		script: 'Grand patron festival',
+		names: 'Saint John 2026',
+		date: 'June 22–25',
+		tags: ['Hosts', 'Program'],
+	},
+	'yunsa-colores': {
+		caption: 'The tree, the cortamonte godparents and a list of contributors, full of color.',
+		posterAlt: 'Brightly colored balloons tied with ribbons',
+		script: 'Grand yunsa',
+		names: 'Quispe Family',
+		date: 'Sunday · March 1',
+		tags: ['Godparents', 'Cortamonte'],
+	},
+	'oficial-protocolo': {
+		caption: 'Sober and flawless: official program, list of authorities and guest registration.',
+		posterAlt: 'Auditorium with an audience in front of a stage',
+		script: 'Ceremony of',
+		names: 'Class of 2026',
+		date: 'Friday · December 11',
+		tags: ['Program', 'Registration'],
+	},
+	'empresa-summit': {
+		caption: 'Speaker agenda, sign-up form and your brand in every detail.',
+		posterAlt: 'Attendees seated at a business conference',
+		script: 'You’re invited to',
+		date: 'Thursday · October 15',
+		tags: ['Agenda', 'Your brand'],
+	},
+	'empresa-brindis': {
+		caption: 'The company dinner with dress code, menu and RSVP from every team member.',
+		posterAlt: 'Guests raising glasses in a hall decorated with lights',
+		script: 'Cheers!',
+		names: 'Annual Dinner',
+		date: 'Friday · December 18',
+		tags: ['Dress code', 'RSVP'],
+	},
+};
+
+export function getShorts(lang: Lang = 'es'): Short[] {
+	return lang === 'es' ? shorts : shorts.map((s) => ({ ...s, ...shortsEn[s.id] }));
+}
+
+/** Shorts para la portada: uno por categoría primero, luego el resto. */
+export function featuredShorts(lang: Lang = 'es'): Short[] {
+	const all = getShorts(lang);
 	const seen = new Set<string>();
-	const first: Reel[] = [];
-	const rest: Reel[] = [];
-	for (const r of reels) {
-		if (seen.has(r.categorySlug)) rest.push(r);
+	const first: Short[] = [];
+	const rest: Short[] = [];
+	for (const s of all) {
+		if (seen.has(s.categorySlug)) rest.push(s);
 		else {
-			seen.add(r.categorySlug);
-			first.push(r);
+			seen.add(s.categorySlug);
+			first.push(s);
 		}
 	}
 	return [...first, ...rest];
 }
 
-/** Reels de una categoría; si son pocos, se completan con los de su mismo grupo. */
-export function reelsFor(slug: string, min = 4): Reel[] {
-	const own = reels.filter((r) => r.categorySlug === slug);
+/** Shorts de una categoría; si son pocos, se completan con los de su mismo grupo. */
+export function shortsFor(slug: string, lang: Lang = 'es', min = 4): Short[] {
+	const all = getShorts(lang);
+	const own = all.filter((s) => s.categorySlug === slug);
 	if (own.length >= min) return own;
 	const group = categories.find((c) => c.slug === slug)?.group;
-	const sameGroup = reels.filter(
-		(r) => r.categorySlug !== slug && categories.find((c) => c.slug === r.categorySlug)?.group === group,
+	const sameGroup = all.filter(
+		(s) => s.categorySlug !== slug && categories.find((c) => c.slug === s.categorySlug)?.group === group,
 	);
 	return [...own, ...sameGroup].slice(0, Math.max(min, own.length));
 }

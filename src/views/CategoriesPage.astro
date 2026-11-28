@@ -1,0 +1,101 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import CategoryGroups from '../components/CategoryGroups.astro';
+import Features from '../components/Features.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { getCategories, categoryPath, getGroups, categoriesByGroup } from '../data/categories';
+import { absoluteUrl, url } from '../data/site';
+import { getLang, routes } from '../i18n';
+
+const lang = getLang(Astro.url);
+const categories = getCategories(lang);
+const groups = getGroups(lang);
+const home = routes.home[lang];
+const list = routes.categories[lang];
+
+const copy = {
+	es: {
+		title: 'Tipos de Invitaciones Digitales por Categoría',
+		description:
+			'Explora todas nuestras invitaciones digitales por categoría: celebraciones sociales, sacramentos, fiestas tradicionales y eventos institucionales o empresariales.',
+		home: 'Inicio',
+		crumb: 'Invitaciones',
+		kicker: 'Encuentra tu celebración',
+		h1: 'Invitaciones digitales por categoría',
+		lead: `${categories.length} tipos de invitaciones web agrupadas en ${groups.length} familias. Cada una tiene secciones pensadas para ese tipo de evento: padrinos para un bautizo, itinerario para unos quince, programa de días para una fiesta patronal.`,
+		included: 'Lo que incluyen todas nuestras invitaciones',
+	},
+	en: {
+		title: 'Types of Digital Invitations by Category',
+		description:
+			'Explore all our digital invitations by category: social celebrations, sacraments, traditional festivals and institutional or corporate events.',
+		home: 'Home',
+		crumb: 'Invitations',
+		kicker: 'Find your celebration',
+		h1: 'Digital invitations by category',
+		lead: `${categories.length} types of web invitations grouped into ${groups.length} families. Each one has sections designed for that kind of event: godparents for a baptism, an itinerary for a quinceañera, a day-by-day program for a patron saint festival.`,
+		included: 'What all our invitations include',
+	},
+}[lang];
+const { title, description } = copy;
+
+const jsonLd = [
+	{
+		'@context': 'https://schema.org',
+		'@type': 'BreadcrumbList',
+		itemListElement: [
+			{ '@type': 'ListItem', position: 1, name: copy.home, item: absoluteUrl(home) },
+			{ '@type': 'ListItem', position: 2, name: copy.crumb, item: absoluteUrl(list) },
+		],
+	},
+	{
+		'@context': 'https://schema.org',
+		'@type': 'CollectionPage',
+		name: title,
+		description,
+		url: absoluteUrl(list),
+		inLanguage: lang,
+		mainEntity: {
+			'@type': 'ItemList',
+			itemListElement: groups.flatMap((g) => categoriesByGroup(g.id, lang)).map((c, i) => ({
+				'@type': 'ListItem',
+				position: i + 1,
+				name: c.h1,
+				url: absoluteUrl(categoryPath(c, lang)),
+			})),
+		},
+	},
+];
+---
+
+<Layout {title} {description} {jsonLd} keywords={categories.map((c) => c.keywords[0])} alternates={routes.categories}>
+	<section class="section page-head">
+		<div class="container">
+			<Breadcrumbs items={[{ name: copy.home, href: url(home) }, { name: copy.crumb }]} />
+			<header class="section-head">
+				<span class="kicker">{copy.kicker}</span>
+				<h1>{copy.h1}</h1>
+				<p>{copy.lead}</p>
+			</header>
+			<CategoryGroups level="h2" />
+		</div>
+	</section>
+
+	<section class="section section--tint" aria-labelledby="incluyen-title">
+		<div class="container">
+			<header class="section-head section-head--center">
+				<h2 id="incluyen-title">{copy.included}</h2>
+			</header>
+			<Features />
+		</div>
+	</section>
+
+	<CtaBand />
+</Layout>
+
+<style>
+	.page-head {
+		padding-block-start: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+	}
+</style>

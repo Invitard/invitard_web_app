@@ -1,4 +1,6 @@
 import type { ImageMetadata } from 'astro';
+import { routes, type Lang } from '../i18n';
+import { categoriesEn, groupsEn } from './categories.en';
 
 import bodaPareja from '../assets/stock/boda-pareja.jpg';
 import quinceSalon from '../assets/stock/quinceanos-salon.jpg';
@@ -32,6 +34,8 @@ export interface Faq {
 
 export interface Category {
 	slug: string;
+	/** Slug de la URL en inglés (solo en la versión en inglés). */
+	enSlug?: string;
 	group: GroupId;
 	/** Nombre corto para tarjetas y menú. */
 	name: string;
@@ -691,14 +695,42 @@ export const categories: Category[] = [
 	},
 ];
 
-export function categoriesByGroup(groupId: GroupId): Category[] {
-	return categories.filter((c) => c.group === groupId);
+/* ───────────── Idiomas ───────────── */
+
+/** Categorías en el idioma pedido. `slug` sigue siendo el id (español); `enSlug` es la URL en inglés. */
+export function getCategories(lang: Lang = 'es'): Category[] {
+	if (lang === 'es') return categories;
+	return categories.map((c) => {
+		const { slug: enSlug, ...text } = categoriesEn[c.slug];
+		return { ...c, ...text, enSlug };
+	});
 }
 
-export function groupOf(category: Category): CategoryGroup {
-	return groups.find((g) => g.id === category.group)!;
+export function getGroups(lang: Lang = 'es'): CategoryGroup[] {
+	if (lang === 'es') return groups;
+	return groups.map((g) => ({ ...g, ...groupsEn[g.id] }));
 }
 
-export function categoryPath(category: Pick<Category, 'slug'>): string {
-	return `/invitaciones/${category.slug}/`;
+export function getCategory(slug: string, lang: Lang = 'es'): Category {
+	return getCategories(lang).find((c) => c.slug === slug)!;
+}
+
+export function categoriesByGroup(groupId: GroupId, lang: Lang = 'es'): Category[] {
+	return getCategories(lang).filter((c) => c.group === groupId);
+}
+
+export function groupOf(category: Category, lang: Lang = 'es'): CategoryGroup {
+	return getGroups(lang).find((g) => g.id === category.group)!;
+}
+
+/** Ruta de la categoría (sin base path) en el idioma pedido. */
+export function categoryPath(category: Pick<Category, 'slug'>, lang: Lang = 'es'): string {
+	return lang === 'en'
+		? `${routes.categories.en}${categoriesEn[category.slug].slug}/`
+		: `${routes.categories.es}${category.slug}/`;
+}
+
+/** Título de tarjeta / enlace: «Invitaciones de bodas» · «Weddings invitations». */
+export function categoryLinkLabel(category: Category, lang: Lang = 'es'): string {
+	return lang === 'en' ? `${category.name} invitations` : `Invitaciones de ${category.name.toLowerCase()}`;
 }

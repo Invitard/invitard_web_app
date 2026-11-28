@@ -1,6 +1,9 @@
 ---
 import Icon from './Icon.astro';
-import { features } from '../data/content';
+import { getFeatures } from '../data/content';
+import { getLang } from '../i18n';
+
+const features = getFeatures(getLang(Astro.url));
 ---
 
 <ul class="features" role="list">

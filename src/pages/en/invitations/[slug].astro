@@ -1,0 +1,13 @@
+---
+import type { GetStaticPaths } from 'astro';
+import CategoryPage from '../../../views/CategoryPage.astro';
+import { categories } from '../../../data/categories';
+import { categoriesEn } from '../../../data/categories.en';
+
+export const getStaticPaths = (() =>
+	categories.map((c) => ({ params: { slug: categoriesEn[c.slug].slug }, props: { id: c.slug } }))) satisfies GetStaticPaths;
+
+const { id } = Astro.props;
+---
+
+<CategoryPage slug={id} />

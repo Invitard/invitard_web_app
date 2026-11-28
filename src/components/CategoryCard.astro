@@ -2,7 +2,8 @@
 import { Picture } from 'astro:assets';
 import Icon from './Icon.astro';
 import type { Category } from '../data/categories';
-import { categoryPath, groupOf } from '../data/categories';
+import { categoryPath, categoryLinkLabel, groupOf } from '../data/categories';
+import { getLang } from '../i18n';
 import { url } from '../data/site';
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
 }
 
 const { category, headingLevel: H = 'h3' } = Astro.props;
+const lang = getLang(Astro.url);
 const hue = groupOf(category).hue;
 // Primera oración del lead como resumen de la tarjeta.
 const summary = category.lead.split(/(?<=[.!?])\s+/)[0];
@@ -30,10 +32,10 @@ const summary = category.lead.split(/(?<=[.!?])\s+/)[0];
 	</div>
 	<div class="cat-body">
 		<H class="cat-title">
-			<a href={url(categoryPath(category))}>Invitaciones de {category.name.toLowerCase()}</a>
+			<a href={url(categoryPath(category, lang))}>{categoryLinkLabel(category, lang)}</a>
 		</H>
 		<p>{summary}</p>
-		<span class="cat-more" aria-hidden="true">Ver diseños <Icon name="arrow" size="1.1rem" /></span>
+		<span class="cat-more" aria-hidden="true">{lang === 'en' ? 'See designs' : 'Ver diseños'} <Icon name="arrow" size="1.1rem" /></span>
 	</div>
 </article>
 

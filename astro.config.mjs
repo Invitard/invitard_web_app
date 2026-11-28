@@ -26,8 +26,9 @@ export default defineConfig({
 			serialize(item) {
 				const path = new URL(item.url).pathname.slice(base.length) || '/';
 				if (path === '/') item.priority = 1.0;
-				else if (path === '/invitaciones/') item.priority = 0.9;
-				else if (path.startsWith('/invitaciones/')) item.priority = 0.85;
+				else if (path === '/en/') item.priority = 0.95;
+				else if (path === '/invitaciones/' || path === '/en/invitations/') item.priority = 0.9;
+				else if (path.startsWith('/invitaciones/') || path.startsWith('/en/invitations/')) item.priority = 0.85;
 				return item;
 			},
 		}),

@@ -1,21 +1,39 @@
 ---
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
-import { groups, categoriesByGroup, categoryPath } from '../data/categories';
+import { getGroups, categoriesByGroup, categoryPath, categoryLinkLabel } from '../data/categories';
+import { getLang } from '../i18n';
 import { site, url, whatsappLink } from '../data/site';
 
 const year = new Date().getFullYear();
+const lang = getLang(Astro.url);
+const groups = getGroups(lang);
+const copy = {
+	es: {
+		logo: 'Invitard, invitaciones digitales',
+		about: `Diseñamos invitaciones digitales web para bodas, quinceaños, cumpleaños, sacramentos, fiestas tradicionales y eventos institucionales para clientes de todo el mundo, en el idioma que necesites.`,
+		message: '¡Hola Invitard! Quiero información sobre sus invitaciones digitales',
+		made: 'Invitaciones digitales hechas con cariño.',
+		social: 'Redes sociales',
+		email: 'Correo',
+	},
+	en: {
+		logo: 'Invitard, digital invitations',
+		about: `We design digital web invitations for weddings, quinceañeras, birthdays, sacraments, traditional festivals and institutional events for clients all over the world, in any language.`,
+		message: 'Hi Invitard! I’d like information about your digital invitations',
+		made: 'Digital invitations made with love.',
+		social: 'Social media',
+		email: 'Email',
+	},
+}[lang];
 ---
 
 <footer class="site-footer">
 	<div class="container footer-grid">
 		<div class="footer-brand">
-			<div class="footer-logo"><Logo label="Invitard, invitaciones digitales" /></div>
-			<p>
-				Diseñamos invitaciones digitales web para bodas, quinceaños, cumpleaños, sacramentos, fiestas tradicionales y eventos
-				institucionales. Desde {site.city} para todo el Perú y el mundo.
-			</p>
-			<a class="btn btn--whatsapp" href={whatsappLink('¡Hola Invitard! Quiero información sobre sus invitaciones digitales')} rel="noopener" target="_blank">
+			<div class="footer-logo"><Logo label={copy.logo} /></div>
+			<p>{copy.about}</p>
+			<a class="btn btn--whatsapp" href={whatsappLink(copy.message)} rel="noopener" target="_blank">
 				<Icon name="whatsapp" />
 				{site.whatsappDisplay}
 			</a>
@@ -26,9 +44,9 @@ const year = new Date().getFullYear();
 				<nav class="footer-col" aria-labelledby={`footer-${g.id}`}>
 					<h2 id={`footer-${g.id}`}>{g.name}</h2>
 					<ul>
-						{categoriesByGroup(g.id).map((c) => (
+						{categoriesByGroup(g.id, lang).map((c) => (
 							<li>
-								<a href={url(categoryPath(c))}>Invitaciones de {c.name.toLowerCase()}</a>
+								<a href={url(categoryPath(c, lang))}>{categoryLinkLabel(c, lang)}</a>
 							</li>
 						))}
 					</ul>
@@ -38,12 +56,12 @@ const year = new Date().getFullYear();
 	</div>
 
 	<div class="container footer-bottom">
-		<p>© {year} {site.name}. Invitaciones digitales hechas con cariño.</p>
-		<ul class="social" aria-label="Redes sociales">
+		<p>© {year} {site.name}. {copy.made}</p>
+		<ul class="social" aria-label={copy.social}>
 			<li><a href={site.social.instagram} rel="noopener me" target="_blank"><Icon name="instagram" size="1.25rem" /><span class="visually-hidden">Instagram</span></a></li>
 			<li><a href={site.social.facebook} rel="noopener me" target="_blank"><Icon name="facebook" size="1.25rem" /><span class="visually-hidden">Facebook</span></a></li>
 			<li><a href={site.social.tiktok} rel="noopener me" target="_blank"><Icon name="tiktok" size="1.25rem" /><span class="visually-hidden">TikTok</span></a></li>
-			<li><a href={`mailto:${site.email}`}><Icon name="mail" size="1.25rem" /><span class="visually-hidden">Correo</span></a></li>
+			<li><a href={`mailto:${site.email}`}><Icon name="mail" size="1.25rem" /><span class="visually-hidden">{copy.email}</span></a></li>
 		</ul>
 	</div>
 </footer>

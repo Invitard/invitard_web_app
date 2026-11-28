@@ -3,10 +3,13 @@ interface Props {
 	items: { name: string; href?: string }[];
 }
 
+import { getLang } from '../i18n';
+
 const { items } = Astro.props;
+const label = getLang(Astro.url) === 'en' ? 'Breadcrumb' : 'Ruta de navegación';
 ---
 
-<nav class="breadcrumbs" aria-label="Ruta de navegación">
+<nav class="breadcrumbs" aria-label={label}>
 	<ol>
 		{
 			items.map((item, i) =>
